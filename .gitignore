@@ -1,0 +1,5 @@
+node_modules
+.env
+scripts_to_be_run.txt
+yarn.lock
+./logs

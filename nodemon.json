@@ -1,0 +1,15 @@
+{
+    "restartable": "rs",
+    "watch": ["src"],
+    "ext": "js, json",
+    "ignore":[
+        ".git",
+        "node_modules/**",
+        "./src/tests/**"
+    ],
+    "verbose": false,
+    "env": {
+        "NODE_ENV": "development"
+    }
+    
+}
