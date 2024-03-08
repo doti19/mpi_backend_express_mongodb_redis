@@ -1,4 +1,0 @@
--> [32m[32minfo[32m[39m:     [32mServer is running on port 3000 and development mode.[39m 
--> [32m[32minfo[32m[39m:     [32mConnected to MongoDB[39m 
--> [31m[31merror[31m[39m:    [31mError connecting to Redis: AggregateError[39m 
--> [32m[32minfo[32m[39m:     [32mDisconnected from Redis[39m 
