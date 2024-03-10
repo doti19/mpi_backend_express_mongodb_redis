@@ -8,7 +8,7 @@ const uniqueValidator = require('mongoose-unique-validator')
 
 const { IMAGES_FOLDER_PATH } = require('../../utils/constants')
 const { isValidUrl } = require('../../utils/isValid')
-const { jwt_token, bcrypt: bcryptConfig } = require('../../config/config')
+const { jwt_token, bcrypt: bcryptConfig, token: tokenConfig } = require('../../config/config')
 const UserToken = require('./user.token.model');
 
 const emailSchema = mongoose.Schema({
@@ -227,6 +227,11 @@ const userSchema = mongoose.Schema(
         passwordChangedAt:{
             type: Date,
             select: false,
+        },
+        active:{
+            type: Boolean,
+            default: true,
+            select: false,
         }
     },
     {
@@ -246,26 +251,6 @@ userSchema.virtual('fullName').get(function () {
     return `${this.firstName || ''} ${this.lastName || ''}`.trim()
 })
 
-// userSchema.statics.encryptPassword = async function(password) {
-//     const salt = await bcrypt.genSalt(10);
-//     return await bcrypt.hash(password, salt);
-// };
-
-// userSchema.statics.comparePassword = async function(password, receivedPassword){
-//     return await bcrypt.compare(password, receivedPassword);
-// };
-
-// userSchema.methods.isValidPassword = async function (password) {
-//     return await bcrypt.compare(password, this.password);
-// };
-
-// userSchema.set('toJSON', {
-//     virtuals: true,
-//     transform: function(doc, ret) {
-//         delete ret._id;
-//         delete ret.password;
-//     }
-// });
 
 userSchema.pre('save', async function (next) {
     if (!this.isModified('password') || this.isNew) return next();
@@ -281,7 +266,6 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     }
 }
 
-// console.log(join(__dirname, '..', '..', '..', IMAGES_FOLDER_PATH))
 userSchema.methods.toJSON = function () {
     // if not exists avatar1 default
     const absoluteAvatarFilePath = `${join(__dirname, '..', '..', '..', IMAGES_FOLDER_PATH)}${this.avatar}`
@@ -291,20 +275,6 @@ userSchema.methods.toJSON = function () {
         : fs.existsSync(absoluteAvatarFilePath)
             ? `${IMAGES_FOLDER_PATH}${this.avatar}`
             : `${IMAGES_FOLDER_PATH}avatar1.jpg`
-    // return {
-    //     id: this._id,
-    //     provider: this.provider,
-    //     firstName: this.firstName,
-    //     lastName: this.lastName,
-    //     emailAddress: this.emailAddress,
-    //     dateOfBirth: this.dateOfBirth,
-    //     gender: this.gender,
-
-    //     avatar: avatar,
-    //     role: this.role,
-    //     createdAt: this.createdAt,
-    //     updatedAt: this.updatedAt,
-    // }
     const user = this.toObject();
     
     user.avatar = avatar;
@@ -317,7 +287,6 @@ userSchema.methods.toJSON = function () {
 }
 
 userSchema.methods.generateJWT = async function () {
-    // try{
    const payload = {
         id: this._id,
         email: this.emailAddress.email,
@@ -349,93 +318,44 @@ await new UserToken({
     userId: this._id, token: refreshToken
 }).save();
     return {accessToken: access_token, refreshToken: refreshToken};
-// }catch(err){
-//     // throw new Error(err);
-//     throw new Error(err);
-// }
+//
 }
 
 userSchema.methods.registerUser = async(newUser) => {
-        // bcrypt.genSalt(bcryptConfig.saltRounds).then(salt => {
-        //     bcrypt.hash(newUser.password, salt).then(hash => {
-        //     newUser.password = hash;
-        //     throw new Error();
-        //     newUser.save().then(res => {
-        //         // Handle successful save
-        //         console.log('user saved successfully');
-        //     }).catch(saveError => {
-        //         // Handle save error
-        //         console.log('user is not saved');
-        //         return new Error(saveError);
-
-        //     });
-        //     }).catch(hashError => {
-        //     // Handle hash error
-        //     console.log('error with hashing password');
-        //     return new Error(hashError);
-        //     });
-        // }).catch(saltError => {
-        //     console.log('error with generating salt');
-        //     return new Error(saltError);
-        //     // Handle salt error
-        // });
-        
             const salt = await bcrypt.genSalt(bcryptConfig.saltRounds);
             const hash = await bcrypt.hash(newUser.password, salt);
             newUser.password = hash;
-            throw new Error();
-            await newUser.save();
-        // } catch(err){
-        //     throw new Error(err);
-        // }  
+            await newUser.save(); 
 
     }
-// userSchema.methods.registerUser = async(newUser, callback) => {
-//     bcrypt.genSalt(bcryptConfig.saltRounds, (err, salt) => {
-//         if (err) {
-//             return callback(err, null);
-//         }
-//         bcrypt.hash(newUser.password, salt, async (hashError, hash) => {
-//             if (hashError) {
-//                 return callback(hashError, null);
-//             }
-//             newUser.password = hash;
-//             try{
-//                 throw new Error();
-//                res = await newUser.save();
-               
-//                 return callback(null, res);
-//             }catch(saveError){
-//                 console.log('dootiiii', saveError);
-//                return callback(saveError, null);
-//             }
-//         })
-//     })
-// }
 
-userSchema.methods.comparePassword = function (password, callback) {
-    bcrypt.compare(password, this.password, (err, isMatch) => {
-        if (err) {
-            return callback(err)
-        }
-        callback(null, isMatch)
-    })
+
+userSchema.methods.comparePassword = async function (password) {
+   const isMatch = await bcrypt.compare(password, this.password);
+   return isMatch;
 }
 
-const hashPassword = async password => {
-    bcrypt.genSalt(bcryptConfig.saltRounds, (err, salt) => {
-        if (err) {
-            throw new Error(err)
-        }
-        bcrypt.hash(password, salt, (err, hash) => {
-            if (err) {
-                throw new Error(err)
-            }
-            return hash
-        })
-    })
+ const hashPassword = async function (password) {
+    const salt = await bcrypt.genSalt(bcryptConfig.saltRounds);
+    const hash = await bcrypt.hash(password, salt);
+    return hash;
 }
-exports.hashPassword = hashPassword
+
+
+
+userSchema.methods.createResetToken = async function () {
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hash = await bcrypt.hash(resetToken, bcryptConfig.saltRounds);
+   
+    this.passwordResetToken = hash;
+  
+    console.log("resetToken:" + resetToken, this.passwordResetToken);
+    this.passwordResetExpires = Date.now() + (tokenConfig.expiresIn * 1000);
+  
+    return resetToken;
+  };
+  
+
 
 
 userSchema.plugin(uniqueValidator, {
@@ -443,6 +363,8 @@ userSchema.plugin(uniqueValidator, {
     message:
         'Error, expected {PATH} to be unique. Value: {VALUE} is already taken.',
 })
-const User = mongoose.model('User', userSchema)
+const User = mongoose.model('User', userSchema);
+User.hashPassword=hashPassword;
+
 
 module.exports = User;

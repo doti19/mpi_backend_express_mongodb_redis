@@ -20,20 +20,22 @@ const jwtLogin = new JwtStrategy(opts, async(req, jwt_payload, done)=>{
 
     try{
         
-        const redisToken = await redisClient.get(`${jwt_payload.id}`).catch((err)=>{
+        await redisClient.get(`${jwt_payload.id}`).then((redisToken)=>{
+            if(
+                req.headers.authorization && 
+                req.headers.authorization.startsWith("Bearer")
+                ){
+                    bearerToken = req.headers.authorization.split(" ")[1];
+                }
+                
+                
+                if(redisToken == bearerToken){
+                    return done(null, false, {message: 'User already Logged Out'});
+                }
+        }) .catch((err)=>{
             logger.error('Error getting token from redis', err);
         });
-        if(
-            req.headers.authorization && 
-            req.headers.authorization.startsWith("Bearer")
-            ){
-                bearerToken = req.headers.authorization.split(" ")[1];
-            }
-            
-            
-            if(redisToken == bearerToken){
-                return done(null, false, {message: 'User already Logged Out'});
-            }
+        
             
             const user = await User.findById(jwt_payload.id);
             if(user){
@@ -52,76 +54,3 @@ const jwtLogin = new JwtStrategy(opts, async(req, jwt_payload, done)=>{
 });
 
 module.exports = jwtLogin;
-
-
-
-
-
-
-
-
-
-
-
-
-
-// const myJwt = require('../config').jwt;
-// // const {ExtractJwt, Strategy: JwtStrategy} = require('passport-jwt');
-// const JwtStrategy = require('passport-jwt').Strategy;
-// const ExtractJwt = require('passport-jwt').ExtractJwt;
-// const BearerStrategy = require('passport-http-bearer').Strategy;
-// // const jwt = require('jsonwebtoken');
-// const User = require('../api/models/auth');
-// const {tokenTypes} = require('../config/tokens');
-// const passport = require('passport');
-// const authProviders = require('../../utils/authProviders');
-
-// const jwtOptions = {
-//     secretOrKey: myJwt.secret,
-//     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-//     issuer: myJwt.issuer,
-//     audience: myJwt.audience,
-    
-// };
-
-
-// const jwt = async(payload, done)=>{
-//     try{
-//         if(payload.type !== tokenTypes.ACCESS){
-//             throw new Error('Invalid token type');
-//         }
-
-//         const user = await User.findById(payload.sub);
-//         if(!user){
-//             return done(null, false);
-//         }
-//         done(null, user);
-
-//     }catch(error){
-//     return done(error, false);
-    
-//     }
-// };
-
-
-// const oAuth = (service) => async (req, res, next) => {
-//     try{
-//         const userData = await authProviders[service](token);
-//         const user = await User.oAuthLogin(userData);
-//         return done(null, user);
-//     }catch(err){
-//         return done(err, false);
-//     }
-//    // copilot generated code in here, maybe useful for the future
-//     // passport.authenticate(service, {session: false}, (err, user) => {
-//     //     if (err || !user) {
-//     //         return next(err);
-//     //     }
-//     //     req.user = user;
-//     //     return next();
-//     // })(req, res, next);
-// };
-
-
-// exports.jwtStrategy = new JwtStrategy(jwtOptions, jwt);
-// exports.google = new BearerStrategy(oAuth('google'));

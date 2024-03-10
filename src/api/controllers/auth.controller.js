@@ -35,12 +35,17 @@ const requestPasswordReset = catchAsync(async(req, res, next)=>{
 });
 
 const resetPassword = catchAsync(async(req, res, next) =>{
-  
-    
-    
-    
+try{
+        const result = await authService.resetPassword(req.body, req.params, req.query);
+        res.json(result);
+    }catch(err){
+        return next(err);
+    }
+});
+
+const changePassword = catchAsync(async(req, res, next)=>{
     try{
-        const result = await authService.resetPassword(req.body);
+        const result = await authService.changePassword(req.body, req.user._id);
         res.json(result);
     }catch(err){
         return next(err);
@@ -73,4 +78,6 @@ module.exports = {
     resetPassword,
     logout,
     refresh,
+    changePassword,
+
 }

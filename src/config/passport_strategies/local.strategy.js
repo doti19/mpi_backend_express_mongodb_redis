@@ -25,15 +25,11 @@ const passportLogin = new PassportLocalStrategy(opts, async(req, email, password
         if(!user){
             return done(null, false, {message: 'Email does not exist'});
         }
-        user.comparePassword(password, (err, isMatch)=>{
-            if(err){
-                return done(err);
-            }
-            if(!isMatch){
-                return done(null, false, {message: 'Incorrect password'});
-            }
-            return done(null, user);
-        });
+       const isMatch =  await user.comparePassword(password);
+       if(!isMatch){
+           return done(null, false, {message: 'Invalid Password'});
+       }
+       return done(null, user);
 
     }catch(err){
         return done(null, false, {message: `error with authenticating using local: ${err.message}`});

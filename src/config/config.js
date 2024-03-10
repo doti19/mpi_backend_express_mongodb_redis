@@ -66,7 +66,7 @@ const envVarsSchema = joi.object()
             .description('Session secret key'),
 
         TOKEN_EXPIRATION_SECONDS: joi.number()
-            .default(3600)
+            .default(300)
             .description('Token expiration time in seconds, default to 1 hour'),
 
         RESET_PASSWORD_LINK: joi.string()

@@ -38,6 +38,14 @@ const schema=  Joi.object().keys({
     validate(schema, body);
 } 
 
+const changePasswordValidator=(body)=>{
+    const schema = Joi.object().keys({
+        oldPassword: password,
+        newPassword: password,
+    });
+    validate(schema,body);
+    };
+
 const registerBodyValidator= (body)=>{
 
 const schema = Joi.object().keys({
@@ -80,13 +88,15 @@ validate(schema, body);
 
 const resetPasswordValidator =(body)=>{
     
-    const schema = Joi.object().keys({
+    const bodySchema = Joi.object().keys({
     password: password,
-    userId: objectId,
-    token: resetToken,
+    email: email,
+    token: resetToken
 });
 
-validate(schema, body);
+
+
+validate(bodySchema, body);
 };
 
 const refreshTokenBodyValidator =(body)=>{
@@ -101,6 +111,7 @@ validate(schema, body);
 module.exports = {
     loginBodyValidator,
     registerBodyValidator,
+    changePasswordValidator,
 
     requestPasswordResetValidator,
     resetPasswordValidator,
