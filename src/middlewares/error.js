@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const mongoose = require('mongoose');
 const expressValidation = require('express-validation');
-const APIError = require('../errors/apiError');
+const {APIError} = require('../errors/apiError');
 const {server} = require('../config/config');
 const logger = require('../config/logger');
 

@@ -2,7 +2,7 @@ const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const logger = require('../logger');
 const redisClient = require('../redis');
-const {User} = require('../../api/models');
+const {User} = require('../../api/models').User;
 const {jwt_token} = require('../config');
 
 const opts = {

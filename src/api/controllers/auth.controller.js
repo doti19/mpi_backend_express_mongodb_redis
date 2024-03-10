@@ -1,5 +1,5 @@
 const {authService} = require('../services');
-const APIError = require("../../errors/apiError");
+const {APIError} = require("../../errors/apiError");
 const catchAsync = require('../../utils/catchAsync');
 const register = catchAsync(async(req, res, next)=>{
       try{

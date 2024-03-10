@@ -15,7 +15,7 @@ const registerBodyTransformer = (body)=>{
         delete bodyCopy.pushNotificationEnabled;
         delete bodyCopy.pushNotificationType;
         delete bodyCopy.pushNotificationFrequency;
-        
+        delete bodyCopy.role;
        return {
             provider: 'local',
             
@@ -46,6 +46,7 @@ const registerBodyTransformer = (body)=>{
                     notificationFrequency: body.pushNotificationFrequency
                 },
                 },
+                role: body.role.toString().toLowerCase().trim(),
                 ...bodyCopy,
             
         }
@@ -53,5 +54,5 @@ const registerBodyTransformer = (body)=>{
 
 
 module.exports = {
-    registerBodyTransformer
+    registerBodyTransformer,
 }

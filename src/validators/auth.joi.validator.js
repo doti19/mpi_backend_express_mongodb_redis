@@ -32,16 +32,16 @@ const {firstName,
 const loginBodyValidator=(body) =>{
 
 const schema=  Joi.object().keys({
-        email: email,
-        password: password,
+        email: email.required(),
+        password: password.required(),
     });
     validate(schema, body);
 } 
 
 const changePasswordValidator=(body)=>{
     const schema = Joi.object().keys({
-        oldPassword: password,
-        newPassword: password,
+        oldPassword: password.required(),
+        newPassword: password.required(),
     });
     validate(schema,body);
     };
@@ -49,20 +49,20 @@ const changePasswordValidator=(body)=>{
 const registerBodyValidator= (body)=>{
 
 const schema = Joi.object().keys({
-        firstName: firstName,
+        firstName: firstName.required(),
         lastName: lastName,
-        email: email,
-        password: password,
+        email: email.required(),
+        password: password.required(),
         avatar: avatar,
-        dateOfBirth: dateOfBirth,
-        gender: gender,
-        phoneNumber: phoneNumber,
-        phoneNumberCountryCode: phoneNumberCountryCode,
+        dateOfBirth: dateOfBirth.required(),
+        gender: gender.required(),
+        phoneNumber: phoneNumber.required(),
+        phoneNumberCountryCode: phoneNumberCountryCode.required(),
         streetAddress: streetAddress,
         streetAddress2: streetAddress2,
-        city: city,
-        stateProvince: stateProvince,
-        country: country,
+        city: city.required(),
+        stateProvince: stateProvince.required(),
+        country: country.required(),
         zipCode: zipCode,
         emailNotificationEnabled: emailNotificationEnabled,
         emailNotificationType: emailNotificationType,
@@ -70,7 +70,7 @@ const schema = Joi.object().keys({
         pushNotificationEnabled: pushNotificationEnabled,
         pushNotificationType: pushNotificationType,
         pushNotificationFrequency: pushNotificationFrequency,
-        role: role,
+        role: role.required(),
     });
     
 validate(schema, body);
@@ -80,7 +80,7 @@ validate(schema, body);
 const requestPasswordResetValidator =(body)=>{
     
     const schema = Joi.object().keys({
-    email: email
+    email: email.requied(),
 });
 
 validate(schema, body);
@@ -89,9 +89,9 @@ validate(schema, body);
 const resetPasswordValidator =(body)=>{
     
     const bodySchema = Joi.object().keys({
-    password: password,
-    email: email,
-    token: resetToken
+    password: password.required(),
+    email: email.required(),
+    token: resetToken.required()
 });
 
 
@@ -102,7 +102,7 @@ validate(bodySchema, body);
 const refreshTokenBodyValidator =(body)=>{
     
     const schema = Joi.object().keys({
-    refreshToken: refreshToken
+    refreshToken: refreshToken.required(),
 });
 
 validate(schema, body);

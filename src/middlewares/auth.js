@@ -18,8 +18,18 @@ const requireLocalAuth = (req, res, next)=>{
         next();
     })(req, res, next);
 }
-
+restrictTo = (...roles) => {
+    return (req, res, next) => {
+      // roles is an array ['admin', 'lead-guide'], role='user'
+      if (!roles.includes(req.user.role)) {
+        return next(new Error('You do not have permission to perform this action'));
+      }
+  
+      next();
+    };
+  };
 module.exports = {
     requireJwtAuth,
     requireLocalAuth,
+    restrictTo,
 };

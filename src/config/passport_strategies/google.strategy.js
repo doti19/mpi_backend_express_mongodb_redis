@@ -1,6 +1,6 @@
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
-const {User} = require('../../api/models');
+const {User} = require('../../api/models').User;
 const {google} = require('../config');
 /**
  * Sign in with Google.
@@ -22,7 +22,9 @@ const googleLogin = new GoogleStrategy(opts, async (accessToken, refreshToken, p
     if(oldUser){
       return done(null, oldUser);
     }
-
+ 
+//TODO there are fields that are not known at first, like role, and password, so we need to find a way to handle that
+//TODO we need to force him to provide a password, and also a role, we can use the role to determine if he is an admin or not
     const newUser = await new User({
       provider: 'google',
       googleId: profile.id,

@@ -1,5 +1,5 @@
 const PassportLocalStrategy = require('passport-local').Strategy;
-const {User} = require('../../api/models');
+const {User} = require('../../api/models').User;
 const {authJoiValidator} = require('../../validators');
 
 
@@ -25,6 +25,7 @@ const passportLogin = new PassportLocalStrategy(opts, async(req, email, password
         if(!user){
             return done(null, false, {message: 'Email does not exist'});
         }
+        console.log(user);
        const isMatch =  await user.comparePassword(password);
        if(!isMatch){
            return done(null, false, {message: 'Invalid Password'});

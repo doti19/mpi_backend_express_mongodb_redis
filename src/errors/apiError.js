@@ -16,4 +16,6 @@ const ExtendableError = require('./extandableError')
       super({ message, errors, status, isPublic, stack })
    }
 }
-module.exports = APIError
+module.exports = {
+   APIError
+}

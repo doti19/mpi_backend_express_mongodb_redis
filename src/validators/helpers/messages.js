@@ -124,8 +124,7 @@ const emailNotificationEnabledMessages = {
 }
 const emailNotificationTypeMessages = {
     'string.base': 'Email Notification Type must be a string',
-    'any.only':
-        'Email Notification Type must be one of the allowed values: {#valids}',
+    'any.only': 'Email Notification Type must be one of the allowed values: {#valids}',
 }
 
 const emailNotificationFrequencyMessages = {
@@ -158,6 +157,7 @@ const roleMessages = {
     'string.base': 'Role must be a string',
     'string.empty': 'Role is required',
     'any.required': 'Role is required',
+    'any.only': 'Role must be one of the allowed values: {#valids}',
 }
 
 const refreshTokenMessages = {

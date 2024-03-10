@@ -7,6 +7,7 @@ const apiRoutes = require('./api');
 
 
 const Response = require('../../../helpers/response.helper');
+const { requireJwtAuth } = require('../../../middlewares/auth');
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ const router = express.Router();
  */
 
 // router.get('/status', (req, res) => res.send('OK'));
-router.get('/status', (req, res) => Response.Ok(res, 'Ok'));
+router.get('/status', requireJwtAuth, (req, res) => Response.Ok(res, 'Ok'));
 
 
 // Define your routes here

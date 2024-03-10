@@ -81,8 +81,58 @@ const phoneNumberSchema = mongoose.Schema({
 
     },
 }, {_id: false});
+const emailNotificationSchema = mongoose.Schema({
+    
+    enabled: {
+    type: Boolean,
+    required: true,
+    default: true,
+    },
+    notificationType:{
+        type: [String],
+        required: true,
+        enum: ['newMatch', 'matchReminder', 'matchResult', "friendActivity"],
+        default: ['friendActivity', 'newMatch']
+    },
+    notificationFrequency:{
+        type: String,
+        required: true,
+        default: 'daily',
+        enum: ['daily', 'weekly', 'monthly']
+    }
+},{_id: false});
 
-
+const pushNotificationSchema = mongoose.Schema({
+    
+    enabled: {
+        type: Boolean,
+        required: true,
+        default: true,
+    },
+    notificationType:{
+        type: [String],
+        required: true,
+        enum: ['newMatch', 'matchReminder', 'matchResult', "friendActivity", "homeWork"],
+        default: ['newMatch', 'matchReminder', 'matchResult', "friendActivity", 'homeWork'] 
+    },
+    notificationFrequency:{
+        type: String,
+        required: true,
+        default: 'daily',
+        enum: ['daily', 'weekly', 'monthly']
+    }
+},{_id: false})
+const notificationPreferenceSchema = mongoose.Schema({
+    emailNotification: {
+        type: emailNotificationSchema,
+        required: true,
+    },
+    pushNotification:{
+        type: pushNotificationSchema,
+        required: true,
+    },
+}, {_id: false})
+const options = {discriminatorKey: 'userType', };
 
 const userSchema = mongoose.Schema(
     {
@@ -123,13 +173,13 @@ const userSchema = mongoose.Schema(
         phoneNumber:phoneNumberSchema,
         
         address:addressSchema,
-        tennisRanking:{
-            type: String,
-            //TODO connect to external api later
-            // required: true,
-            default: 'beginner',
-            enum: ['beginner', 'intermediate', 'advanced', 'professional']
-        },
+        // tennisRanking:{
+        //     type: String,
+        //     //TODO connect to external api later
+        //     // required: true,
+        //     default: 'beginner',
+        //     enum: ['beginner', 'intermediate', 'advanced', 'professional']
+        // },
         isProfilePublic:{
             type: Boolean,
             // required: true,
@@ -137,62 +187,9 @@ const userSchema = mongoose.Schema(
 
         },
         notificationPreference:{
-            type: Object,
-            required: true,
-            default: {
-                emailNotification: {
-                    enabled: true,
-                    notificationType: ['newMatch', "friendActivity"],
-                    notificationFrequency: 'daily'
-                },
-                pushNotification: {
-                    enabled: true,
-                    notificationType: ['newMatch', 'matchReminder', 'matchResult', "friendActivity", "homework"],
-                    notificationFrequency: 'daily'
-                }
-            },
-            emailNotification: {
-                type: Object,
-                required: true,
-                enabled: {
-                type: Boolean,
-                required: true,
-                default: true,
-                },
-                notificationType:{
-                    type: Array,
-                    required: true,
-                    enum: ['newMatch', 'matchReminder', 'matchResult', "friendActivity"],
-                    default: ['friendActivity', 'newMatch']
-                },
-                notificationFrequency:{
-                    type: String,
-                    required: true,
-                    default: 'daily',
-                    enum: ['daily', 'weekly', 'monthly']
-                }
-            },
-            pushNotification:{
-                type: Object,
-                required: true,
-                enabled: {
-                    type: Boolean,
-                    required: true,
-                    default: true,
-                },
-                notificationType:{
-                    type: Array,
-                    required: true,
-                    enum: ['newMatch', 'matchReminder', 'matchResult', "friendActivity", "homework"],
-                    default: ['newMatch', 'matchReminder', 'matchResult', "friendActivity", 'homeWork'] 
-                },
-                notificationFrequency:{
-                    type: String,
-                    required: true,
-                    default: 'daily',
-                    enum: ['daily', 'weekly', 'monthly']
-                }
-            }
+           type: notificationPreferenceSchema,
+           required: true,
+           
         },
         avatar: {
             type: String,
@@ -202,8 +199,8 @@ const userSchema = mongoose.Schema(
         
         role: {
             type: String,
-            default: 'user',
-            enum: ['user', 'admin'],
+            // default: 'user',
+            enum: ['player', 'coach', 'parent'],
         },
         googleId: {
             type: String,
@@ -240,8 +237,7 @@ const userSchema = mongoose.Schema(
         // toObj: {
         //     virtuals: true,
         // },
-    }
-)
+    }, options);
 
 userSchema.virtual('id').get(function () {
     return this._id.toHexString()
@@ -366,5 +362,36 @@ userSchema.plugin(uniqueValidator, {
 const User = mongoose.model('User', userSchema);
 User.hashPassword=hashPassword;
 
+// Define the Player schema with specific fields
+const Player = User.discriminator('Player', new mongoose.Schema({
+    tennisRanking:{
+        type: String,
+        //TODO connect to external api later
+        // required: true,
+        default: 'beginner',
+        enum: ['beginner', 'intermediate', 'advanced', 'professional']
+    },
+}));
 
-module.exports = User;
+// Define the Coach schema with specific fields
+const Coach = User.discriminator('Coach', new mongoose.Schema({
+    players:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Student',
+        // requierd: true,
+        default: [],
+    }],
+
+}));
+
+// Define the Parent schema with specific fields
+const Parent = User.discriminator('Parent', new mongoose.Schema({
+    children:[{
+        type: mongoose.Schema.Types.ObjectId,
+        // required: true,
+        default: [],
+        ref: 'Student',
+    }],
+
+}));
+module.exports = {Player, Coach, Parent, User};

@@ -4,15 +4,16 @@ const redisClient = require('../../config/redis');
 const {jwt_token, token: tokenConfig} = require('../../config/config');
 const logger = require("../../config/logger");
 
-const {User, Token, UserToken} = require('../models');
+const {Token, UserToken} = require('../models');
+const {User} = require('../models').User;
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const {bcrypt: bcryptConfig, links, server} = require('../../config/config');
 const sendEmail = require('../../config/email');
 const httpStatus = require('http-status');
-const ApiError = require('../../errors/apiError');
+const {APIError} = require('../../errors/apiError');
 const {authJoiValidator} = require('../../validators');
-const { authTransformer } = require("../../transformers");
+const { authTransformer, modelTransformer } = require("../../transformers");
 const { verifyRefreshToken } = require('../../helpers/jwt.helper');
 
 const {checkError} = require('../../utils/checkError');
@@ -20,10 +21,12 @@ const register = async(body)=>{
     try{
         authJoiValidator.registerBodyValidator(body);
     }catch(err){
-        console.log('doti in controller error');
+       
        throw new Error(err);
     }
     const transformedBody = authTransformer.registerBodyTransformer(body);
+    const Model = modelTransformer.convertModel(transformedBody.role);
+
     try{
         const existingUser = await User.findOne({'emailAddress.email':transformedBody.emailAddress.email});
         
@@ -31,13 +34,12 @@ const register = async(body)=>{
             return {message: 'Email is in Use', status: 422};
         }
         
-       
-            const newUser = User(transformedBody);
+            const newUser = Model(transformedBody);
              const  res =  await newUser.registerUser(newUser);
            return {message: 'Registered Successfully', status: 201};
                
     } catch(err){
-        throw new ApiError({message: 'Error registering User', status: 501, stack: err.stack});
+        throw new APIError({message: 'Error registering User', status: 501, stack: err.stack});
     }
 }
 
@@ -63,10 +65,10 @@ const changePassword = async(body, id)=>{
     const user = await User.findOne({_id: id});
     const {oldPassword, newPassword} = body;
     const isMatch = await user.comparePassword(oldPassword);
-    console.log(isMatch, 'isMatch');
     if(!isMatch){
         throw new Error('Current password is incorrect');
     }
+
     const hashed= await User.hashPassword(newPassword);
     user.password = hashed;
     user.passwordChangedAt = Date.now();
@@ -79,12 +81,13 @@ const requestPasswordReset = async(body)=>{
         authJoiValidator.requestPasswordResetValidator(body);
     }catch(err){
         //TODO for all errors related to validation, please have them in one place
-        throw new ApiError(err);
+        throw new APIError(err);
     }
+
     const user = await User.findOne({"emailAddress.email": body.email});
     
 
-    if(!user) throw new ApiError({status: httpStatus.NOT_FOUND, message:'No user found with this email'});
+    if(!user) throw new APIError({status: httpStatus.NOT_FOUND, message:'No user found with this email'});
 
     const token = await Token.findOne({userId: user._id});
 
