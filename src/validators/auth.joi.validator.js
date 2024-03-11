@@ -65,7 +65,7 @@ const schema = Joi.object().keys({
         country: country.required(),
         zipCode: zipCode,
         emailNotificationEnabled: emailNotificationEnabled,
-        emailNotificationType: emailNotificationType,
+        emailNotificationType: emailNotificationType, 
         emailNotificationFrequency: emailNotificationFrequency,
         pushNotificationEnabled: pushNotificationEnabled,
         pushNotificationType: pushNotificationType,

@@ -190,7 +190,19 @@ const userSchema = mongoose.Schema(
         },
         notificationPreference:{
            type: notificationPreferenceSchema,
-           required: true,
+        //    required: true,
+        //    default: {
+        //     emailNotification: {
+        //         enabled: true,
+        //         notificationType: [ "friendActivity"],
+        //         notificationFrequency: 'daily'
+        //     },
+        //     pushNotification: {
+        //         enabled: true,
+        //         notificationType: ['newMatch', 'matchReminder', 'matchResult', "friendActivity", "homeWork"],
+        //         notificationFrequency: 'daily'
+        //     }
+        // },
            
         },
         avatar: {

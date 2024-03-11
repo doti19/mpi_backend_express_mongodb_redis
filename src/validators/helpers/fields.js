@@ -144,8 +144,9 @@ pushNotificationEnabled = Joi.boolean()
     .label('Push Notification Enabled')
 pushNotificationType = Joi.array()
     .items(Joi.string().valid('newMatch', 'matchReminder', 'matchResult', "friendActivity", "homework"))
-    .min(1)
+    .min(0)
     .max(5)
+    .unique()
     .messages(pushNotificationTypeMessages)
     .label('Push Notification Type')
 pushNotificationFrequency = Joi.string()
@@ -196,7 +197,6 @@ module.exports = {
     isProfilePublic,
     emailNotificationEnabled,
     emailNotificationType,
-    emailNotificationFrequency,
     emailNotificationFrequency,
     pushNotificationEnabled,
     pushNotificationType,

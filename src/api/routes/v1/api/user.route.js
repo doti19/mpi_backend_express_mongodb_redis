@@ -7,11 +7,10 @@ const router = express.Router();
 
 router
     .route('/profile')
-    .get(requireJwtAuth, userController.profile)
-    .patch(requireJwtAuth, userController.updateProfile);
-
-// router.delete('/:id', requireJwtAuth, userController.deleteMe);
-
+    .get(requireJwtAuth, userController.viewProfile)
+    .patch(requireJwtAuth, userController.updateProfile)
+    .delete(requireJwtAuth, userController.deleteProfile);
+router.get('/search', requireJwtAuth, userController.searchUsers);
 // router.patch('/deactivate', requireJwtAuth, userController.deactivateMe);
 
 module.exports = router;
