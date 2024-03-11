@@ -1,58 +1,57 @@
-const mongoose = require('mongoose');
-
+const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 const userAssessmentSchema = new Schema({
-    assessmentId:{
+    assessmentId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Assessment',
+        ref: "Assessment",
         required: true,
     },
-    status:{
+    status: {
         type: String,
-        enum: ['passed', 'failed', 'unlocked', 'locked'],
-        default: 'locked',
-    }
+        enum: ["passed", "failed", "unlocked", "locked"],
+        default: "locked",
+    },
 });
 
 const userVideoSchema = new Schema({
     videoId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Video',
+        ref: "Video",
         required: true,
     },
     status: {
         type: String,
-        enum: ['new', 'finished', 'unfinished'],
-        default: 'new'
-    }
-})
+        enum: ["new", "finished", "unfinished"],
+        default: "new",
+    },
+});
 
 const userCourseSchema = new Schema({
     courseId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'Course',
+        ref: "Course",
     },
     startingDate: Date,
     assessments: [userAssessmentSchema],
     videos: [userVideoSchema],
-    status:{
+    status: {
         type: String,
-        enum: ['started', 'not started', 'finished', 'locked', 'unlocked'],
-        default: 'locked',
+        enum: ["started", "not started", "finished", "locked", "unlocked"],
+        default: "locked",
     },
 });
 
 const userCoursesSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         required: true,
     },
-    courses: [userCourseSchema]
-    });
+    courses: [userCourseSchema],
+});
 
-    const Token = mongoose.model("Token", tokenSchema);
+const Token = mongoose.model("Token", tokenSchema);
 
-    module.exports = Token;
+module.exports = Token;

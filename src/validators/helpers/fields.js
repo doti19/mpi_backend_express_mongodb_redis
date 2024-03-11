@@ -1,4 +1,6 @@
 const Joi = require('joi')
+Joi.objectId = require('joi-objectid')(Joi);
+
 const {
     firstNameMessages,
     lastNameMessages,
@@ -28,6 +30,10 @@ const {
     objectIdMessages,
     resetTokenMessages,
 } = require('./messages')
+
+objectId = Joi.objectId()
+    .messages(objectIdMessages)
+    .label('Object Id')
 
 avatar = Joi.string()
     .uri()
@@ -166,11 +172,11 @@ refreshToken = Joi.string()
     // .required()
     .messages(refreshTokenMessages)
     .label('Refresh Token')
-objectId = Joi.string()
-    .hex()
-    .length(24)
-    .messages(objectIdMessages)
-    .label('Object Id')
+// objectId = Joi.string()
+//     .hex()
+//     .length(24)
+//     .messages(objectIdMessages)
+//     .label('Object Id')
 resetToken = Joi.string()
     .length(64)
     .hex()

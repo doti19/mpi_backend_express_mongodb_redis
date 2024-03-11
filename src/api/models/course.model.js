@@ -1,17 +1,14 @@
-const mongoose = require('mongoose');
-
+const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-
-
 const lessonSchema = new Schema({
-    title:{
+    title: {
         type: String,
     },
-    description:{
+    description: {
         type: String,
-    }
+    },
 });
 
 const moduleSchema = new Schema({
@@ -19,7 +16,7 @@ const moduleSchema = new Schema({
         type: String,
         required: true,
     },
-    description:{
+    description: {
         type: String,
         required: true,
     },
@@ -27,12 +24,12 @@ const moduleSchema = new Schema({
 });
 
 const questionSchema = new Schema({
-    questionType:{
+    questionType: {
         type: String,
-        enum: ['multiple-choice', 'fill-in-the-blank'],//for quize, for homework: reflection (mn temark) might enforce word count, for assignment: reflection on other general
+        enum: ["multiple-choice", "fill-in-the-blank"], //for quize, for homework: reflection (mn temark) might enforce word count, for assignment: reflection on other general
         required: true,
     },
-    question:{
+    question: {
         type: String,
         required: true,
     },
@@ -42,7 +39,7 @@ const questionSchema = new Schema({
         //TODO Should i make this an array in case there are multiple choices that are correct?
         required: true,
     },
-    
+
     // status: {
     //     type: String,
     //     enum: ['correct', 'incorrect']
@@ -51,15 +48,15 @@ const questionSchema = new Schema({
 
 //TODO THIS MAY NEED TO HAVE A REFERENCE, LIKE AFTER WHAT VIDEOS
 const assessmentSchema = new Schema({
-    assessmentType:{
+    assessmentType: {
         type: String,
-        enum: ['quiz', 'assignment','homework'],
+        enum: ["quiz", "assignment", "homework"],
     },
     title: {
         type: String,
         required: true,
     },
-    description:{
+    description: {
         type: String,
         required: true,
     },
@@ -67,11 +64,11 @@ const assessmentSchema = new Schema({
         type: Number,
         default: 5,
     },
-    attemptsAllowed:{
+    attemptsAllowed: {
         type: Number,
         default: 3,
     },
-    
+
     questions: [questionSchema],
 });
 
@@ -80,64 +77,66 @@ const videoSchema = new Schema({
         type: String,
         required: true,
     },
-    description:{
+    description: {
         type: String,
         required: true,
     },
-    url:{
+    url: {
         type: String,
         required: true,
     },
-    duration:{
+    duration: {
         type: Number,
         required: true,
     },
-    thumbnail:{
+    thumbnail: {
         type: String,
         required: true,
     },
-    caption:{
+    caption: {
         type: String,
     },
-    
 });
 
-
-
-const courseSchema = new Schema({
-    title: {
-        type: String,
-        required: true,
+const courseSchema = new Schema(
+    {
+        title: {
+            type: String,
+            required: true,
+        },
+        description: {
+            type: String,
+            required: true,
+        },
+        isPublished: {
+            type: Boolean,
+            default: false,
+        },
+        level: {
+            type: String,
+            enum: ["begginer", "intermediate", "advanced"],
+        },
+        expectedCourseDuration: {
+            type: Number,
+        },
+        externalResources: [
+            {
+                type: String,
+                //TODO make it to accept url
+            },
+        ],
+        curriculum: [moduleSchema],
     },
-    description:{
-        type: String,
-        required: true,
-    },
-    isPublished:{
-        type: Boolean,
-        default: false,
-    },
-    level: {
-        type: String,
-        enum: ['begginer', 'intermediate', 'advanced']
-    },
-    expectedCourseDuration:{
-        type: Number,
-    },
-    externalResources:[{
-        type: String,
-        //TODO make it to accept url
-    }],
-    curriculum:[moduleSchema],
-},{
+    {
         timestamps: true,
-    });
+    }
+);
 
-    const Course = mongoose.model("Course", courseSchema);
-    const Assessment = mongoose.model("Assessment", assessmentSchema);
-    const Video = mongoose.model("Video", videoSchema);
-    module.exports ={
-        Course,
-        Assessment,
-        Video,
-    };
+const Course = mongoose.model("Course", courseSchema);
+const Assessment = mongoose.model("Assessment", assessmentSchema);
+const Video = mongoose.model("Video", videoSchema);
+module.exports = {
+    Course,
+    Assessment,
+    Video,
+};

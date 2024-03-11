@@ -35,6 +35,7 @@
     "handlebars": "^4.7.8",
     "http-status": "^1.7.4",
     "joi": "^17.12.2",
+    "joi-objectid": "^4.0.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.2.1",
     "mongoose-unique-validator": "^5.0.0",

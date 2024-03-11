@@ -1,18 +1,18 @@
-const mongoose = require('mongoose');
-const {token} = require('../../config/config');
+const mongoose = require("mongoose");
+const { token } = require("../../config/config");
 
 const Schema = mongoose.Schema;
 
 const tokenSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         required: true,
     },
     userEmail: {
         type: String,
         required: true,
-        ref: 'User',
+        ref: "User",
     },
     token: {
         type: String,
@@ -22,10 +22,10 @@ const tokenSchema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        index:{expires: token.expiresIn},
+        index: { expires: token.expiresIn },
     },
-    });
+});
 
-    const Token = mongoose.model("Token", tokenSchema);
+const Token = mongoose.model("Token", tokenSchema);
 
-    module.exports = Token;
+module.exports = Token;
