@@ -91,6 +91,7 @@ const emailNotificationSchema = mongoose.Schema({
     notificationType:{
         type: [String],
         required: true,
+        unique: true,
         enum: ['newMatch', 'matchReminder', 'matchResult', "friendActivity"],
         default: ['friendActivity', 'newMatch']
     },
@@ -112,6 +113,7 @@ const pushNotificationSchema = mongoose.Schema({
     notificationType:{
         type: [String],
         required: true,
+        unique: true,
         enum: ['newMatch', 'matchReminder', 'matchResult', "friendActivity", "homeWork"],
         default: ['newMatch', 'matchReminder', 'matchResult', "friendActivity", 'homeWork'] 
     },

@@ -123,8 +123,23 @@ const emailNotificationEnabledMessages = {
     'boolean.base': 'Email Notification Enabled must be a boolean',
 }
 const emailNotificationTypeMessages = {
-    'string.base': 'Email Notification Type must be a string',
-    'any.only': 'Email Notification Type must be one of the allowed values: {#valids}',
+    'array.base': 'Email Notification Type must be an array',
+    'array.empty': 'Email Notification Type cannot be an empty array',
+    'array.unique': 'Email Notification Type must be unique',
+    'array.min': 'Email Notification Type must have at least {#limit} items',
+    'array.max': 'Email Notification Type must not exceed {#limit} items',
+    'array.includes': 'Email Notification Type must include {#values}',
+    'array.includesSingle': 'Email Notification Type must include {#values}',
+    'array.includesRequiredUnknowns': 'Email Notification Type must include {#values}',
+    'array.includesRequiredKnowns': 'Email Notification Type must include {#values}',
+    'array.sparse': 'Email Notification Type must not be a sparse array',
+    'array.items': 'Email Notification Type must contain an array of strings',
+    'array.items.string.base': 'Email Notification Type must contain an array of strings',
+    'array.items.string.empty': 'Email Notification Type must contain an array of strings',
+    'array.items.string.min': 'Email Notification Type must contain an array of strings',
+    'array.items.string.max': 'Email Notification Type must contain an array of strings',
+    'array.items.string.pattern.base': 'Email Notification Type must contain an array of strings',
+    'array.items.any.only': 'Email Notification Type must contain an array of strings',
 }
 
 const emailNotificationFrequencyMessages = {
@@ -138,9 +153,23 @@ const pushNotificationEnabledMessages = {
 }
 
 const pushNotificationTypeMessages = {
-    'string.base': 'Push Notification Type must be a string',
-    'any.only':
-        'Push Notification Type must be one of the allowed values: {#valids}',
+    'array.base': 'Push Notification Type must be an array',
+    'array.empty': 'Push Notification Type cannot be an empty array',
+    'array.unique': 'Push Notification Type must be unique',
+    'array.min': 'Push Notification Type must have at least {#limit} items',
+    'array.max': 'Push Notification Type must not exceed {#limit} items',
+    'array.includes': 'Push Notification Type must include {#values}',
+    'array.includesSingle': 'Push Notification Type must include {#values}',
+    'array.includesRequiredUnknowns': 'Push Notification Type must include {#values}',
+    'array.includesRequiredKnowns': 'Push Notification Type must include {#values}',
+    'array.sparse': 'Push Notification Type must not be a sparse array',
+    'array.items': 'Push Notification Type must contain an array of strings',
+    'array.items.string.base': 'Push Notification Type must contain an array of strings',
+    'array.items.string.empty': 'Push Notification Type must contain an array of strings',
+    'array.items.string.min': 'Push Notification Type must contain an array of strings',
+    'array.items.string.max': 'Push Notification Type must contain an array of strings',
+    'array.items.string.pattern.base': 'Push Notification Type must contain an array of strings',
+    'array.items.any.only': 'Push Notification Type must contain an array of strings',
 }
 
 const pushNotificationFrequencyMessages = {

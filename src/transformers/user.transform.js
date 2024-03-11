@@ -81,10 +81,10 @@ const userUpdateBodyTransformer = (body) => {
             (bodyCopy.notificationPreference = {pushNotification:{enabled: body.pushNotificationEnabled}})
 
     if (body.pushNotificationType)
-    bodyCopy.notificationPreference? (bodyCopy.notificationPreference.pushNotification?(bodyCopy.notificationPreference.pushNotification.pushNotificationType =
-        body.pushNotificationType): (bodyCopy.notificationPreference.pushNotification={pushNotificationType: body.pushNotificationType}))
+    bodyCopy.notificationPreference? (bodyCopy.notificationPreference.pushNotification?(bodyCopy.notificationPreference.pushNotification.notificationType =
+        body.pushNotificationType): (bodyCopy.notificationPreference.pushNotification={notificationType: body.pushNotificationType}))
         :
-        (bodyCopy.notificationPreference = {pushNotification:{pushNotificationType: body.pushNotificationType}})
+        (bodyCopy.notificationPreference = {pushNotification:{notificationType: body.pushNotificationType}})
 
     if (body.pushNotificationFrequency)
     bodyCopy.notificationPreference? (bodyCopy.notificationPreference.pushNotification?(bodyCopy.notificationPreference.pushNotification.notificationFrequency =
@@ -112,7 +112,10 @@ function dotify(obj) {
       for (const key in obj) {
         const value = obj[key];
         const newKey = (current ? current + '.' + key : key);
-        if (value && typeof value === 'object') {
+        //skip if value is an array
+        //TODO find out if it similar with  Date types too: i havent got error, but here is the code
+        //&& !(value instanceof Date)
+        if (value && typeof value === 'object' && !Array.isArray(value) ){
           recurse(value, newKey);
         } else {
           res[newKey] = value;
