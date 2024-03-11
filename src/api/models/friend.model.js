@@ -13,18 +13,18 @@ const friendshipSchema = mongoose.Schema(
             required: [true, "Please select the user you wish to add as a friend!"],
         },
 
-        user1_blocked: {
+        user1IsBlocked: {
             type: Boolean,
             default: false,
         },
-        user2_blocked: {
+        user2IsBlocked: {
             type: Boolean,
             default: false,
         },
         status: {
             type: String,
             default: "request",
-            enum: ["request", "friends", "declined", "blocked"],
+            enum: ["request", "friends"],
         },
         friendRequestSentAt: {
             type: Date,
