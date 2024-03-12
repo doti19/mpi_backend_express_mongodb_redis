@@ -3,8 +3,8 @@ const { APIError } = require("../../errors/apiError");
 const catchAsync = require("../../utils/catchAsync");
 const register = catchAsync(async (req, res, next) => {
     try {
-        const result = await authService.register(req.body);
-
+        const result = await authService.register(req.body, req.query);
+        console.log('sent ersult');
         res.status(result.status).send(result);
     } catch (error) {
         console.log("error registering User");

@@ -414,14 +414,14 @@ const Player = User.discriminator(
 
         //     }
         // ],
-        parents: [
-            {
+        parents: {
+            type:[{
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Parent",
                 default: [],
-                validate: [parentLimit, '{PATH} exceeds the limit of 2']
-            }
-        ],
+            }],
+        validate: [parentLimit, '{PATH} exceeds the limit of 2']
+    },
         coaches: [
             {
             type: mongoose.Schema.Types.ObjectId,

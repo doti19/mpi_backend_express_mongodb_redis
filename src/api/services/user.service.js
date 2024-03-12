@@ -40,9 +40,35 @@ const updateProfile = async (user, body) => {
 
 const deleteProfile = async (user) => {
     try {
+        const role = user.role;
+        if (role == "parent") {
+            if(user.children.length>0){
+                for (const childId of user.children) {
+                    await Player.findByIdAndUpdate(childId, { $pull: { parents: user.id } });
+                }
+            }
+        }else if(role == "coach"){
+            if(user.players.length>0){
+                for (const playerId of user.players) {
+                    await Player.findByIdAndUpdate(playerId, { $pull: { coaches: user.id } });
+        }
+    }else if(role=="player"){
+            if(user.coaches.length>0){
+                for (const coachId of user.coaches) {
+                    await Coach.findByIdAndUpdate(coachId, { $pull: { players: user.id } });
+                }
+            }
+            if(user.parents.length>0){
+                for (const parentId of user.parents) {
+                    await Parent.findByIdAndUpdate(parentId, { $pull: { children: user.id } });
+                }
+            }
+        }
         const deletedUser = await User.findByIdAndDelete({ _id: user._id });
+
         return { message: "User deleted successfully" };
-    } catch (err) {
+    }
+ } catch (err) {
         throw new APIError({
             message: "Error deleting User",
             status: 501,
@@ -238,7 +264,7 @@ const inviteUser = async(body, user)=>{
         }
 }
 
-const addUser = async(query)=>{
+const addUser = async(query, user)=>{
     try{
         userJoiValidator.addUserValidator(query);
     }catch(err){
@@ -254,7 +280,7 @@ const addUser = async(query)=>{
         if(!invitation){
             throw new Error("Invalid or expired invitation token");
         }
-        if(invitation.rel !==rel){
+        if(invitation.rel !==rel || invitation.invitedEmail !== user.emailAddress.email){
             throw new Error("Invalid invitation link");
         }
     // now i have a valid invitation token...

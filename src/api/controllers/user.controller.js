@@ -5,6 +5,7 @@ const { userService } = require("../services");
 const viewProfile = catchAsync(async (req, res, next) => {
     try {
         const user = req.user.toJSON();
+        console.log('what is the problem')
         res.send(user);
     } catch (error) {
         return next(
@@ -79,7 +80,7 @@ const inviteUser = catchAsync(async (req, res, next) => {
 
 const addUser = catchAsync(async(req, res, next)=>{
     try{
-        const result = await userService.addUser(req.query);
+        const result = await userService.addUser(req.query, req.user);
         res.send(result)
     }catch(err){
         return next(

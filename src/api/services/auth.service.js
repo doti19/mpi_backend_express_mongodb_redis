@@ -4,8 +4,13 @@ const redisClient = require("../../config/redis");
 const { jwt_token, token: tokenConfig } = require("../../config/config");
 const logger = require("../../config/logger");
 
-const { Token, UserToken } = require("../models");
-const { User } = require("../models").User;
+const {User:UserSchema, Token, UserToken, Invitation } = require("../models");
+
+const User = UserSchema.User;
+const Player = UserSchema.Player;
+const Coach = UserSchema.Coach;
+const Parent = UserSchema.Parent;
+
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const { bcrypt: bcryptConfig, links, server } = require("../../config/config");
@@ -17,15 +22,150 @@ const { authTransformer, modelTransformer } = require("../../transformers");
 const { verifyRefreshToken } = require("../../helpers/jwt.helper");
 
 const { checkError } = require("../../utils/checkError");
-const register = async (body) => {
+const register = async (body, query) => {
     try {
         authJoiValidator.registerBodyValidator(body);
     } catch (err) {
         throw new Error(err);
     }
+    
+    const {rel, token} = query;
+    console.log("inside the register service");
+    console.log("rel", rel);
+    // when i say role, i mean the user to be created
+    //if rel is child, then role should player
+    //if rel is player, then role should be coach
+    //if rel is coach, then role should be player
+    //if rel is parent, then role should be parent
+
     const transformedBody = authTransformer.registerBodyTransformer(body);
+    if(token){
+
+        if(rel=="child") transformedBody.role="player";
+        else if(rel=="player") transformedBody.role="coach";
+        else if(rel=="coach") transformedBody.role="player";
+        else if(rel=="parent") transformedBody.role="parent";
+    }
     const Model = modelTransformer.convertModel(transformedBody.role);
 
+    if((rel=='parent'||rel=='child'||rel=='coach'||rel=='player')&&token){
+        const invitation = await Invitation.findOne({token: token, rel: rel, createdAt: { $gt: Date.now() - tokenConfig.invitationExpirationSeconds * 1000 },});
+        console.log('invitation', invitation)
+        if(!invitation){
+            console.log('no invitation found')
+            const result = await registerUser(transformedBody, Model);
+            return result;
+        }
+        if(invitation.rel !==rel || invitation.invitedEmail !== transformedBody.emailAddress.email){
+           
+            const result = await registerUser(transformedBody, Model);
+            return result;
+        }
+    
+        if(rel=='parent'){
+            console.log('inside the parent')
+            const child = await Player.findById(invitation.inviterId);
+            if(!child || child.parents.length>=2){
+                console.log('no child found')
+                const result = await registerUser(transformedBody, Model);
+                return result;
+            }
+            transformedBody.children= [child._id];
+            const result = await registerUser(transformedBody, Parent);
+            if(result.status==201){
+                consol.log('inside the parent successfull registration')
+                child.parents.push(result.user.id);
+                await child.save();
+                await invitation.deleteOne();
+                return result;
+            }else{
+                console.log('inside the parent error registration')
+                await Parent.findByIdAndUpadate(result.user.id, {$pull: {children: child.id}});
+                await child.parents.pull(result.user.id);
+                await child.save();
+                throw new APIError({message: "Error registering User", status: 501});
+            }
+
+        }else if(rel=='child'){
+            console.log('inside the child')
+            const parent = await Parent.findById(invitation.inviterId);
+            if(!parent){
+                console.log('no parent found')
+                const result = await registerUser(transformedBody, Model);
+                return result;
+            }
+            transformedBody.parents= [parent.id];
+            const result = await registerUser(transformedBody, Player);
+            if(result.status==201){
+                console.log('inside the child successfull registration')
+                parent.children.push(result.user.id);
+                await parent.save();
+                await invitation.deleteOne();
+                console.log('kemakis men alo');
+                return result;
+            }else{
+                console.log('inside the child error registration')
+                await Player.findByIdAndUpadate(result.user.id, {$pull: {parents: parent.id}});
+                await parent.children.pull(result.user.id);
+                await parent.save();
+                throw new APIError({message: "Error registering User", status: 501});
+            }
+
+        }else if(rel=='coach'){
+            console.log('inside the coach')
+            const player = await Player.findById(invitation.inviterId);
+            if(!player){
+                console.log('no player found')
+                const result = await registerUser(transformedBody, Model);
+                return result;
+            }
+            transformedBody.players= [player.id];
+            const result = await registerUser(transformedBody, Coach);
+            if(result.status==201){
+                console.log('inside the coach successfull registration')    
+                player.coaches.push(result.user.id);
+                await player.save();
+                await invitation.deleteOne();
+                return result;
+            }else{
+                console.log('inside the coach error registration')
+                await Coach.findByIdAndUpadate(result.user.id, {$pull: {players: player.id}});
+                await player.coaches.pull(result.user.id);
+                await player.save();
+                throw new APIError({message: "Error registering User", status: 501});
+            }
+
+        }else if(rel=='player'){
+            console.log('inside the player')
+            const coach = await Coach.findById(invitation.inviterId);
+            if(!coach){
+                console.log('no coach found')
+                const result = await registerUser(transformedBody, Model);
+                return result;
+            }
+            transformedBody.coaches= [coach.id];
+            const result = await registerUser(transformedBody, Player);
+            if(result.status==201){
+                console.log('inside the player successfull registration')
+                coach.players.push(result.user.id);
+                await coach.save();
+                await invitation.deleteOne();
+                return result;
+            }else{
+                console.log('inside the player error registration')
+                await Player.findByIdAndUpadate(result.user.id, {$pull: {coaches: coach.id}});
+                await coach.players.pull(result.user.id);
+                await coach.save();
+                throw new APIError({message: "Error registering User", status: 501});
+            }
+        }else{
+            const result = await registerUser(transformedBody, Model);
+            return result;
+        }
+    } 
+};
+
+async function registerUser (transformedBody, Model){
     try {
         const existingUser = await User.findOne({
             "emailAddress.email": transformedBody.emailAddress.email,
@@ -45,7 +185,7 @@ const register = async (body) => {
             stack: err.stack,
         });
     }
-};
+}
 
 const login = async (req) => {
     try {
