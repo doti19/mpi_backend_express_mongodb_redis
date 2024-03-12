@@ -10,6 +10,8 @@ router
     .patch(requireJwtAuth, userController.updateProfile)
     .delete(requireJwtAuth, userController.deleteProfile);
 router.get("/search", requireJwtAuth, userController.searchUsers);
+router.post("/invite", requireJwtAuth, userController.inviteUser);
+router.get('/add', requireJwtAuth, userController.addUser);
 // router.get('/:userId', requireJwtAuth, userController.getUser);
 // router.patch('/deactivate', requireJwtAuth, userController.deactivateMe);
 

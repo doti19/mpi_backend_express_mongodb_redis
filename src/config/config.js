@@ -52,6 +52,12 @@ const envVarsSchema = joi.object()
         TOKEN_VERIFY_EMAIL_EXPIRATION_MINUTES: joi.number()
             .default(10)
             .description('JWT verify email expiration time in minutes'),
+            TOKEN_EXPIRATION_SECONDS: joi.number()
+                .default(300)
+                .description('Token expiration time in seconds, default to 1 hour'),
+            INVITATION_EXPIRATION_SECONDS: joi.number()
+                .default(3600)
+                .description('Invitation expiration time in seconds, default to 1 hour'),
         JWT_ISSUER: joi.string()
             .required()
             .description('JWT issuer'),
@@ -65,14 +71,17 @@ const envVarsSchema = joi.object()
             .required()
             .description('Session secret key'),
 
-        TOKEN_EXPIRATION_SECONDS: joi.number()
-            .default(300)
-            .description('Token expiration time in seconds, default to 1 hour'),
-
+        BASE_URL: joi.string()
+            .default('http://localhost:3000')
+            .description('Base url'),
         RESET_PASSWORD_LINK: joi.string()
             .description('Reset password link'),
         VERIFY_EMAIL_LINK: joi.string()
             .description('Verify email link'),
+        ADD_USER_LINK: joi.string()
+            .description('Add user link'),
+        SIGNUP_LINK: joi.string()
+            .description('Signup link'),
 
         EMAIL_HOST: joi.string()
             .description('Server for sending emails'),
@@ -149,14 +158,18 @@ const config = {
     },
     token:{
         resetPasswordExpirationMinutes: envVars.TOKEN_RESET_PASSWORD_EXPIRATION_MINUTES,
-        
+        invitationExpirationSeconds: envVars.INVITATION_EXPIRATION_SECONDS,
         verifyEmailExpirationMinutes: envVars.TOKEN_VERIFY_EMAIL_EXPIRATION_MINUTES,
         expiresIn: envVars.TOKEN_EXPIRATION_SECONDS,
     },
 
+
     links:{
+        baseUrl: envVars.BASE_URL,
         resetPassword: envVars.RESET_PASSWORD_LINK,
         verifyEmail: envVars.VERIFY_EMAIL_LINK,
+        addUser: envVars.ADD_USER_LINK,
+        signupUser: envVars.SIGNUP_LINK,
     },
 
     logs: envVars.NODE_ENV=== 'production' ? 'combined' : 'dev',

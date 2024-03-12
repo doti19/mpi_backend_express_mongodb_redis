@@ -29,6 +29,8 @@ const {
     refreshTokenMessages,
     objectIdMessages,
     resetTokenMessages,
+    invitationTokenMessages,
+    relationshipMessages
 } = require('./messages')
 
 objectId = Joi.objectId()
@@ -183,6 +185,15 @@ resetToken = Joi.string()
     // .required()
     .messages(resetTokenMessages)
     .label('Reset Token')
+invitationToken = Joi.string()
+    .length(64)
+    .hex()
+    .messages(invitationTokenMessages)
+    .label('Invitation Token')
+relationship = Joi.string()
+    .valid("parent", "child", "player", "join", "coach")
+    .messages(relationshipMessages)
+    .label('Relationship')
 module.exports = {
     firstName,
     lastName,
@@ -212,4 +223,7 @@ module.exports = {
     refreshToken,
     objectId,
     resetToken,
+    invitationToken,
+
+    relationship,
 }

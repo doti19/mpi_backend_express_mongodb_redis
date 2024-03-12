@@ -406,6 +406,30 @@ const Player = User.discriminator(
             default: "beginner",
             enum: ["beginner", "intermediate", "advanced", "professional"],
         },
+        // organization:[
+        //     {
+        //         type: mongoose.Schema.Types.ObjectId,
+        //         ref: "Organization",
+        //         default: [],
+
+        //     }
+        // ],
+        parents: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Parent",
+                default: [],
+                validate: [parentLimit, '{PATH} exceeds the limit of 2']
+            }
+        ],
+        coaches: [
+            {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Coach",
+            default: [],
+            // required: true,
+        },
+    ],
     })
 );
 
@@ -416,11 +440,18 @@ const Coach = User.discriminator(
         players: [
             {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "Student",
+                ref: "Player",
                 // requierd: true,
                 default: [],
             },
         ],
+        // organization:[
+        //     {
+        //         type: mongoose.Schema.Types.ObjectId,
+        //         ref: "Organization",
+        //         default: [],
+        //     }
+        // ]
     })
 );
 
@@ -433,9 +464,13 @@ const Parent = User.discriminator(
                 type: mongoose.Schema.Types.ObjectId,
                 // required: true,
                 default: [],
-                ref: "Student",
+                ref: "Player",
             },
         ],
     })
 );
+
+function parentLimit(val) {
+    return val.length <= 2;
+  }
 module.exports = { Player, Coach, Parent, User };

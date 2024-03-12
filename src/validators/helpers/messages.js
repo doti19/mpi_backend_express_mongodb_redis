@@ -211,6 +211,21 @@ const resetTokenMessages = {
     'any.required': 'Reset Token is required',
 }
 
+const invitationTokenMessages = {
+    'string.base': 'Invitation Token must be a string',
+    'string.empty': 'Invitation Token cannot be an empty field',
+    'string.hex': 'Invitation Token must be a hexadecimal string',
+    'string.length': `Invitation Token should be 32 characters long`,
+    'any.required': 'Invitation Token is required',
+}
+
+const relationshipMessages ={
+    'string.base': 'Relationship must be a string',
+    'string.empty': 'Relationship is required',
+    'any.required': 'Relationship is required',
+    'any.only': 'Relationship must be one of the allowed values: {#valids}',
+}
+
 module.exports = {
     firstNameMessages,
     lastNameMessages,
@@ -241,4 +256,6 @@ module.exports = {
     refreshTokenMessages,
     objectIdMessages,
     resetTokenMessages,
+    relationshipMessages,
+    invitationTokenMessages
 }

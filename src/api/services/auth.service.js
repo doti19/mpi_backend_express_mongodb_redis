@@ -108,7 +108,7 @@ const requestPasswordReset = async (body) => {
         createdAt: Date.now(),
     }).save();
 
-    const link = `${links.resetPassword}/${resetToken}?email=${user.emailAddress.email}`;
+    const link = `${links.baseUrl}${links.resetPassword}/${resetToken}?email=${user.emailAddress.email}`;
     checkError(
         sendEmail({
             email: user.emailAddress.email,

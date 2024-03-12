@@ -62,9 +62,42 @@ const searchUsers = catchAsync(async (req, res, next) => {
     }
 });
 
+const inviteUser = catchAsync(async (req, res, next) => {
+    try {
+        const result = await userService.inviteUser( req.body, req.user);
+        res.send(result);
+    } catch (error) {
+        return next(
+            new APIError({
+                message: error.message,
+                status: error.status,
+                stack: error.stack,
+            })
+        );
+    }
+});
+
+const addUser = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.addUser(req.query);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    
+    }
+})
+
 module.exports = {
     viewProfile,
     updateProfile,
     deleteProfile,
     searchUsers,
+    inviteUser,
+    addUser,
 };

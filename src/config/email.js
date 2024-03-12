@@ -35,6 +35,7 @@ const sendEmail = (options) =>{
             from:email.from,
             to: options.email,
             subject: options.subject,
+            
             text: options.message? options.message: "",
             html: compiledTemplate(options.payload),
         };

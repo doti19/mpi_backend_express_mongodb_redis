@@ -23,6 +23,8 @@ const {firstName,
     pushNotificationEnabled,
     pushNotificationType,
     pushNotificationFrequency,
+    relationship,
+    invitationToken,
 } = require('./helpers/fields');
 
 
@@ -56,8 +58,26 @@ const updateProfileValidator= (body)=>{
         
     } 
     
+const inviteUserValidator=(body)=>{
+    const schema = Joi.object().keys({
+        email: email.required(),
+        relationship: relationship.required(),
+
+    });
+    validate(schema, body);
+}
+
+const addUserValidator = (query)=>{
+    const schema = Joi.object().keys({
+        token: invitationToken.required(),
+        rel: relationship.required(),
+    });
+    validate(schema, query);
+}
 
     module.exports = {
        updateProfileValidator,
+       inviteUserValidator,
+       addUserValidator,
     }
     

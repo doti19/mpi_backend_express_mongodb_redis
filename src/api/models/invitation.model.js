@@ -3,30 +3,35 @@ const { token } = require("../../config/config");
 
 const Schema = mongoose.Schema;
 
-const tokenSchema = new Schema({
-    userId: {
+const invitationSchema = new Schema({
+    inviterId: {
         type: Schema.Types.ObjectId,
         ref: "User",
         required: true,
     },
-    userEmail: {
+    rel:{
         type: String,
         required: true,
-        index: true,
+        enum: ["parent", "child", "player", "coach", "join"],
+    },
+    
+    invitedEmail: {
+        type: String,
+        required: true,
         ref: "User",
     },
     token: {
         type: String,
         required: true,
-        
+        index: true,
     },
     createdAt: {
         type: Date,
         default: Date.now,
-        index: { expires: token.expiresIn },
+        index: { expires: token.invitationExpirationSeconds },
     },
 });
 
-const Token = mongoose.model("Token", tokenSchema);
+const Invitation = mongoose.model("Invitation", invitationSchema);
 
-module.exports = Token;
+module.exports = Invitation;
