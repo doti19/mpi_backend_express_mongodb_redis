@@ -18,6 +18,21 @@ const register = catchAsync(async (req, res, next) => {
     }
 });
 
+const completeRegistration = catchAsync(async (req, res, next) => {
+    try {
+        const result = await authService.completeRegistration(req.body, req.user);
+        res.status(result.status).send(result);
+    } catch (error) {
+        return next(
+            new APIError({
+                message: error.message,
+                status: error.status,
+                stack: error.stack,
+            })
+        );
+    }
+});
+
 const login = catchAsync(async (req, res, next) => {
     try {
         const result = await authService.login(req);
@@ -90,6 +105,7 @@ const refresh = catchAsync(async (req, res, next) => {
 
 module.exports = {
     register,
+    completeRegistration,
     login,
     requestPasswordReset,
     resetPassword,

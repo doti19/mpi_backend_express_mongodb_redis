@@ -12,7 +12,7 @@ router.post('/login', requireLocalAuth, authController.login);
 
 
 router.post('/register', authController.register);
-
+router.post('/completeRegistration',requireJwtAuth, authController.completeRegistration);
 
 
 router.post('/refresh', authController.refresh);

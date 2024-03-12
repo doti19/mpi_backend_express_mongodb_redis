@@ -58,7 +58,7 @@ const schema = Joi.object().keys({
         gender: gender.required(),
         phoneNumber: phoneNumber.required(),
         phoneNumberCountryCode: phoneNumberCountryCode.required(),
-        streetAddress: streetAddress,
+        streetAddress: streetAddress.required(),
         streetAddress2: streetAddress2,
         city: city.required(),
         stateProvince: stateProvince.required(),
@@ -77,6 +77,33 @@ validate(schema, body);
     
 } 
 
+const completeRegistrationValidator= (body)=>{
+    const schema = Joi.object().keys({
+        firstName: firstName,
+        lastName: lastName,
+        password: password.required(),
+        avatar: avatar,
+        dateOfBirth: dateOfBirth.required(),
+        gender: gender.required(),
+        phoneNumber: phoneNumber.required(),
+        phoneNumberCountryCode: phoneNumberCountryCode.required(),
+        streetAddress: streetAddress.required(),
+        streetAddress2: streetAddress2,
+        city: city.required(),
+        stateProvince: stateProvince.required(),
+        country: country.required(),
+        zipCode: zipCode,
+        emailNotificationEnabled: emailNotificationEnabled,
+        emailNotificationType: emailNotificationType, 
+        emailNotificationFrequency: emailNotificationFrequency,
+        pushNotificationEnabled: pushNotificationEnabled,
+        pushNotificationType: pushNotificationType,
+        pushNotificationFrequency: pushNotificationFrequency,
+        role: role.required(),
+    });
+    
+validate(schema, body);
+}
 const requestPasswordResetValidator =(body)=>{
     
     const schema = Joi.object().keys({
@@ -111,6 +138,7 @@ validate(schema, body);
 module.exports = {
     loginBodyValidator,
     registerBodyValidator,
+    completeRegistrationValidator,
     changePasswordValidator,
 
     requestPasswordResetValidator,

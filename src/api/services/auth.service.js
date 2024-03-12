@@ -165,6 +165,44 @@ const register = async (body, query) => {
     } 
 };
 
+
+const completeRegistration = async(body, user)=>{
+    try {
+        authJoiValidator.completeRegistrationValidator(body);
+    } catch (err) {
+        throw new Error(err);
+    }
+    
+    const transformedBody = authTransformer.completeRegisterBodyTransformer(body);
+    console.log(transformedBody);
+    const Model = modelTransformer.convertModel(transformedBody.role);
+    const exsitingUser = await User.findById(user.id);
+    if(!exsitingUser){
+        throw new APIError({message: "User not found", status: 404});
+    }
+    if(exsitingUser.isRegistrationComplete){
+        throw new APIError({message: "User already completed registration", status: 409});
+    }
+    let updatedUser;
+    try{
+//TODO i am deleting a user, u need to carefully analyze this later, when you have time
+        transformedBody.isRegistrationComplete = true;
+        const res = new Model({...exsitingUser.toObject(), ...transformedBody});
+        console.log('res', res);
+        const hashed = await User.hashPassword(transformedBody.password);
+        transformedBody.password = hashed;
+        // transformedBody._id = user.id;
+        await User.deleteOne({_id: user.id})
+        console.log('deleted');
+        const  updatedUser =await res.registerUser(res);
+         return {status: 201, message: 'Registered Successfully' ,user:updatedUser};
+    }catch(err){
+        console.log(err);
+        throw new APIError({message: "Error completing registration", status: 501});
+    }
+    
+    
+};
 async function registerUser (transformedBody, Model){
     try {
         const existingUser = await User.findOne({
@@ -377,6 +415,7 @@ module.exports = {
     resetPassword,
     login,
     register,
+    completeRegistration,
     changePassword,
     logout,
     refresh,

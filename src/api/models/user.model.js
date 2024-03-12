@@ -40,7 +40,7 @@ const addressSchema = mongoose.Schema(
     {
         streetAddress: {
             type: String,
-            required: true,
+            required: [true,"please enter street Address" ],
             minLength: 3,
             maxLength: 50,
             //TODO is there a minimum and maximum for street address
@@ -51,19 +51,19 @@ const addressSchema = mongoose.Schema(
         },
         city: {
             type: String,
-            required: true,
+            required: [true, "please enter city"],
             minLength: 3,
             maxLength: 50,
         },
         stateProvince: {
             type: String,
-            required: true,
+            required: [true, "please enter state/province"],
             minLength: 3,
             maxLength: 50,
         },
         country: {
             type: String,
-            required: true,
+            required: [true, "please enter country" ],
             minLength: 3,
             maxLength: 50,
         },
@@ -97,19 +97,19 @@ const emailNotificationSchema = mongoose.Schema(
     {
         enabled: {
             type: Boolean,
-            required: true,
+            required: [true, "Please enable email notification"],
             default: true,
         },
         notificationType: {
             type: [String],
-            required: true,
+            required: [true, "Please select notification type"],
 
             enum: ["newMatch", "matchReminder", "matchResult", "friendActivity"],
             default: ["friendActivity", "newMatch"],
         },
         notificationFrequency: {
             type: String,
-            required: true,
+            required: [true, "Please select notification frequency"],
             default: "daily",
             enum: ["daily", "weekly", "monthly"],
         },
@@ -121,12 +121,12 @@ const pushNotificationSchema = mongoose.Schema(
     {
         enabled: {
             type: Boolean,
-            required: true,
+            required: [true, "Please enable push notification"],
             default: true,
         },
         notificationType: {
             type: [String],
-            required: true,
+            required: [true, "Please select notification type"],
 
             enum: [
                 "newMatch",
@@ -145,7 +145,7 @@ const pushNotificationSchema = mongoose.Schema(
         },
         notificationFrequency: {
             type: String,
-            required: true,
+            required: [true, "Please select notification frequency"],
             default: "daily",
             enum: ["daily", "weekly", "monthly"],
         },
@@ -156,11 +156,11 @@ const notificationPreferenceSchema = mongoose.Schema(
     {
         emailNotification: {
             type: emailNotificationSchema,
-            required: true,
+            required: [true, "Please select email notification preference"],
         },
         pushNotification: {
             type: pushNotificationSchema,
-            required: true,
+            required: [true, "Please select push notification preference"],
         },
     },
     { _id: false }
@@ -169,10 +169,15 @@ const options = { discriminatorKey: "userType" };
 
 const userSchema = mongoose.Schema(
     {
+        isRegistrationComplete:{
+            type: Boolean,
+            default: false,
+            
+        },
         //TODO for those required=true, please add a message too
         firstName: {
             type: String,
-            required: [true, "Please enter your firstName"],
+            required: [function() { return this.isRegistrationComplete; }, "Please enter your firstName"],
             trim: true,
         },
         lastName: {
@@ -185,6 +190,7 @@ const userSchema = mongoose.Schema(
             type: String,
             maxLength: 60,
             trim: true,
+            required: [function() { return this.isRegistrationComplete; }, "Please enter your passwod"]
             //you cant select false, as it is needed by bcrypt
             // select: false,
             //dont change it to make it more strong
@@ -194,13 +200,13 @@ const userSchema = mongoose.Schema(
         },
         dateOfBirth: {
             type: Date,
-            required: [true, "Please enter your date of birth"],
+            required: [function() { return this.isRegistrationComplete; }, "Please enter your date of birth"],
             //TODO make sure the date is not in the future
             //TODO make sure the date is not in the past 100 years
         },
         gender: {
             type: String,
-            required: [true, "Please enter gender"],
+            required: [function() { return this.isRegistrationComplete; }, "Please enter gender"],
             enum: ["male", "female", "other"],
         },
         phoneNumber: phoneNumberSchema,
@@ -243,6 +249,7 @@ const userSchema = mongoose.Schema(
         role: {
             type: String,
             // default: 'user',
+            required: [function() { return this.isRegistrationComplete; }, "Please enter your role"],
             enum: ["player", "coach", "parent"],
         },
         googleId: {
@@ -273,6 +280,7 @@ const userSchema = mongoose.Schema(
             default: true,
             select: false,
         },
+        
     },
     {
         timestamp: true,
@@ -360,6 +368,7 @@ userSchema.methods.registerUser = async (newUser) => {
     const salt = await bcrypt.genSalt(bcryptConfig.saltRounds);
     const hash = await bcrypt.hash(newUser.password, salt);
     newUser.password = hash;
+    newUser.isRegistrationComplete = true;
     const user = await newUser.save();
     return user;
 };
