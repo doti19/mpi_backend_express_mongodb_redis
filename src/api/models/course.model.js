@@ -5,9 +5,11 @@ const Schema = mongoose.Schema;
 const lessonSchema = new Schema({
     title: {
         type: String,
+        required: true,
     },
     description: {
         type: String,
+        required: true,
     },
 });
 
@@ -50,6 +52,7 @@ const questionSchema = new Schema({
 const assessmentSchema = new Schema({
     assessmentType: {
         type: String,
+        required: true,
         enum: ["quiz", "assignment", "homework"],
     },
     title: {
@@ -114,7 +117,8 @@ const courseSchema = new Schema(
         },
         level: {
             type: String,
-            enum: ["begginer", "intermediate", "advanced"],
+            required: true,
+            enum: ["beginner", "intermediate", "advanced"],
         },
         expectedCourseDuration: {
             type: Number,
@@ -125,18 +129,27 @@ const courseSchema = new Schema(
                 //TODO make it to accept url
             },
         ],
-        curriculum: [moduleSchema],
+        curriculum: {
+            type: [moduleSchema],
     },
+    videos:{
+        type: [videoSchema],
+    
+    },
+    assessments: {
+        type: [assessmentSchema],
+    },
+
+},
     {
         timestamps: true,
     }
 );
 
 const Course = mongoose.model("Course", courseSchema);
-const Assessment = mongoose.model("Assessment", assessmentSchema);
-const Video = mongoose.model("Video", videoSchema);
-module.exports = {
-    Course,
-    Assessment,
-    Video,
-};
+// const Assessment = mongoose.model("Assessment", assessmentSchema);
+// const Video = mongoose.model("Video", videoSchema);
+module.exports = Course;
+    // Assessment,
+    // Video,
+

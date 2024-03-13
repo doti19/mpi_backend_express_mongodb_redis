@@ -5,3 +5,4 @@ module.exports.UserToken = require('./user.token.model');
 module.exports.Journal = require('./journal.model');
 module.exports.Friendship = require('./friend.model');
 module.exports.Invitation = require('./invitation.model');
+module.exports.Course = require('./course.model');

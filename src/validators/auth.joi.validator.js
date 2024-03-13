@@ -27,7 +27,7 @@ const {firstName,
     objectId,
     resetToken, 
     refreshToken
-} = require('./helpers/fields');
+} = require('./helpers/fields/user.fields');
 
 const loginBodyValidator=(body) =>{
 

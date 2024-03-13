@@ -1,6 +1,6 @@
 const Joi = require('joi');
 const {validate} = require('../helpers/schema.validation.helper');
-const {objectId} = require('./helpers/fields');
+const {objectId} = require('./helpers/fields/user.fields');
 
 const sendFriendRequestValidator = (body) => {
     const schema = Joi.object().keys({

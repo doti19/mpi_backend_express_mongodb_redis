@@ -25,7 +25,7 @@ const {firstName,
     pushNotificationFrequency,
     relationship,
     invitationToken,
-} = require('./helpers/fields');
+} = require('./helpers/fields/user.fields');
 
 
 const updateProfileValidator= (body)=>{

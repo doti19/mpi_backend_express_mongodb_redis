@@ -250,7 +250,7 @@ const userSchema = mongoose.Schema(
             type: String,
             // default: 'user',
             required: [function() { return this.isRegistrationComplete; }, "Please enter your role"],
-            enum: ["player", "coach", "parent"],
+            enum: ["player", "coach", "parent", "admin"],
         },
         googleId: {
             type: String,

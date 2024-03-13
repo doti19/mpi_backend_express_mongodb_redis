@@ -23,6 +23,25 @@ const { verifyRefreshToken } = require("../../helpers/jwt.helper");
 
 const { checkError } = require("../../utils/checkError");
 const register = async (body, query) => {
+    if(body.role && body.role==='admin'){
+        const user = await User.findOne({role: 'admin'});
+        if(!user){
+            //TODO these should be saved on .env file
+            body.isRegistrationComplete = false;
+            body.role = 'admin';
+            body.emailAddress={email:"saminassaminas@gmail.com", verified: true};
+            body.password = "asdfasdff";
+            body.firstName = "MPI";
+            body.lastName = "Adminstrator";
+            body.phoneNumber ={
+                countryCode: 'ET',
+                number: '1234567890',
+            };
+            
+            const result = await registerUser(body, User);
+            return result;
+        }
+    }
     try {
         authJoiValidator.registerBodyValidator(body);
     } catch (err) {
@@ -162,7 +181,10 @@ const register = async (body, query) => {
             const result = await registerUser(transformedBody, Model);
             return result;
         }
-    } 
+    } else{
+        const result = await registerUser(transformedBody, Model);
+        return result;
+    }
 };
 
 

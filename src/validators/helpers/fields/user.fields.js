@@ -31,7 +31,7 @@ const {
     resetTokenMessages,
     invitationTokenMessages,
     relationshipMessages
-} = require('./messages')
+} = require('../messags/user.messages')
 
 objectId = Joi.objectId()
     .messages(objectIdMessages)
