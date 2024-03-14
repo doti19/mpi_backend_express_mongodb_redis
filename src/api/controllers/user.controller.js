@@ -111,7 +111,7 @@ const viewProfileCourses = catchAsync(async(req, res, next)=>{
 
 const viewPlayerCourse = catchAsync(async(req, res, next)=>{
     try{
-        const result = await userService.viewPlayerCourses(req.params.id, req.query);
+        const result = await userService.canView(userService.viewPlayerCourses, req.user, {id: req.params.id, query: req.query});
         res.send(result)
     }catch(err){
         return next(
@@ -124,6 +124,21 @@ const viewPlayerCourse = catchAsync(async(req, res, next)=>{
     }
 });
 
+const viewProfileDashboard = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.viewProfileDashboard(req.user);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+})
+
 module.exports = {
     viewProfile,
     updateProfile,
@@ -133,4 +148,5 @@ module.exports = {
     addUser,
     viewProfileCourses,
     viewPlayerCourse,
+    viewProfileDashboard
 };

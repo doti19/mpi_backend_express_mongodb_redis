@@ -1,10 +1,10 @@
-const { User: UserSchema, Invitation, UsersCourse, Course } = require("../models");
+const { User: UserSchema, Invitation, UsersCourse,Friendship, Course } = require("../models");
 const User = UserSchema.User;
 const Parent = UserSchema.Parent;
 const Player = UserSchema.Player;
 const Coach = UserSchema.Coach;
 const { APIError } = require("../../errors/apiError");
-const { userTransformer } = require("../../transformers");
+const { userTransformer, modelTransformer } = require("../../transformers");
 const { userJoiValidator } = require("../../validators");
 const APIFeatures = require("../../utils/apiFeatures");
 
@@ -375,6 +375,46 @@ const addUser = async(query, user)=>{
 }
 }
 
+const canView = async(callback, user, options)=>{
+    try{
+        const Model = modelTransformer.convertModel(user.role);
+        const model = await Model.findById(user.id);
+        if(!model){
+            throw new Error("User not found");
+        };
+        const {id, query} = options;
+        if(user.role=='coach'){
+            if(model.players.length>0){
+                const players = await Player.find({_id: { $in: model.players}});
+                if(!players){
+                    throw new Error('you dont have any players with that id');
+                }
+                return callback(id, query);
+            }else{
+                throw new Error('you dont have any players');
+            }
+        }else if (user.role=='parent'){
+            if(model.children.length>0){
+                const children = await Player.find({_id: { $in: model.children}});
+                if(!children){
+                    throw new Error('you dont have any children with that id');
+                }
+                return callback(id, query);
+            }else{
+                throw new Error('you dont have any children registered');
+            }
+        }else{
+            throw new APIError({message: 'unauthorized', status: 401});
+        }
+    }catch(err){
+        throw new APIError({
+            message: "Error viewing Player Courses",
+            status: 501,
+            stack: err.stack,
+        });
+    }
+}
+
 const viewPlayerCourses= async (id, query)=>{
     try{
         
@@ -455,6 +495,79 @@ const viewPlayerCourses= async (id, query)=>{
 
 }
 
+const viewProfileDashboard= async(user)=>{
+    try{
+        const data = {};
+        const userCourse = await UsersCourse.UserCourses.findOne({userId: user.id});
+        data.courses = userCourse.length;
+        data.assessmentsPassed = 0;
+        data.assessmentsFailed = 0;
+        data.videosFinished = 0;
+        if(userCourse){
+            const finishedCourses = userCourse.courses.filter((course)=>course.status=="finished");
+            data.finishedCourses = finishedCourses.length;
+            userCourse.courses.forEach((course)=>{
+                course.assessments.forEach((assessment)=>{
+
+                    if(assessment.status=='passed'){
+                        data.assessmentsPassed++;
+                    }else if(assessment.status=='failed'){
+                        data.assessmentsFailed++;
+                    }
+                });
+                course.videos.forEach((video)=>{
+                    if(video.status=='finished'){
+                        data.videosFinished++;
+                    }
+                })
+                
+            });
+        }
+        if(user.role=='player'){
+            const player = await Player.findById(user.id);
+            
+            friends = await Friendship.countDocuments({$or:[{user1: user.id}, {user2: user.id}], status: "friends"});
+            data.coaches = player.coaches.length;
+            data.parents = player.parents.length;
+            data.friends = friends;
+        };
+    
+        return {
+            course:{
+                total: data.courses,
+                finished: data.finishedCourses,
+                assessments:{
+                    passed: data.assessmentsPassed,
+                    failed: data.assessmentsFailed,
+                },
+                videos:{
+                    finished: data.videosFinished,
+            }
+        },
+            userData: {
+                name: user.firstName,
+                role: user.role,
+                email: user.emailAddress.email,
+                phone: user.phoneNumber,
+                address: user.address,
+            },
+            friends: data.friends,
+            coaches: data.coaches,
+            parents: data.parents,
+            }
+        
+        
+    }catch(err){
+        throw new APIError({
+            message: "Error viewing Profile Dashboard",
+            status: 501,
+            stack: err.stack,
+        });
+    }
+}
+
+
+
 
 module.exports = {
     updateProfile,
@@ -463,4 +576,6 @@ module.exports = {
     inviteUser,
     addUser,
     viewPlayerCourses,
+    canView,
+    viewProfileDashboard,
 };

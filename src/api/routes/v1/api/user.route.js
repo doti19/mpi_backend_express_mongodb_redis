@@ -11,9 +11,13 @@ router
     .delete(requireJwtAuth, userController.deleteProfile);
 router
     .route('/profile/courses')
-    .get(requireJwtAuth, restrictTo('player'), userController.viewProfileCourses);
-    
-router.get('player/:id/courses',requireJwtAuth, restrictTo('coach, parent'), userController.viewPlayerCourse);
+    .get(requireJwtAuth, restrictTo(['player']), userController.viewProfileCourses);
+
+router.route('/profile/dashboard')
+    .get(requireJwtAuth, restrictTo(['player']), userController.viewProfileDashboard);
+router.get('/player/:id/courses',requireJwtAuth, restrictTo(['coach','parent']), userController.viewPlayerCourse);
+
+router.get('')
 
 router.get("/search", requireJwtAuth, userController.searchUsers);
 router.post("/invite", requireJwtAuth, userController.inviteUser);

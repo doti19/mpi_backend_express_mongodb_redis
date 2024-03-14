@@ -39,7 +39,8 @@ async function addCoursesToPlayer(id){
                 userCourses.courses.push(userCourse);
             }
             console.log('userCourse', userCourses.courses)
-            await userCourses.save();
+            const res = await userCourses.save();
+            return {courses: res};
             // newUser.courses = courses.map(course=>course.id);
             // newUser.save();
     
@@ -84,7 +85,8 @@ async function addCourseToPlayer(id, course){
             
     userCourses.courses.push(userCourse);
     
-    await userCourses.save();
+   const courses = await userCourses.save();
+
     // newUser.courses = courses.map(course=>course.id);
     // newUser.save();
 

@@ -18,7 +18,7 @@ const requireLocalAuth = (req, res, next)=>{
         next();
     })(req, res, next);
 }
-restrictTo = (...roles) => {
+restrictTo = (roles) => {
     return (req, res, next) => {
       // roles is an array ['admin', 'lead-guide'], role='user'
       if (!roles.includes(req.user.role)) {
