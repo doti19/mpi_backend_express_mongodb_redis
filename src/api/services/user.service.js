@@ -1,4 +1,4 @@
-const { User: UserSchema, Invitation } = require("../models");
+const { User: UserSchema, Invitation, UsersCourse, Course } = require("../models");
 const User = UserSchema.User;
 const Parent = UserSchema.Parent;
 const Player = UserSchema.Player;
@@ -15,7 +15,7 @@ const { bcrypt: bcryptConfig, links, server, token: tokenConfig } = require("../
 const sendEmail = require("../../config/email");
 
 const { checkError } = require("../../utils/checkError");
-
+const {addCourseToPlayer, addCoursesToPlayer} = require('../../helpers/course.helper')
 const updateProfile = async (user, body) => {
     try {
         userJoiValidator.updateProfileValidator(body);
@@ -51,8 +51,9 @@ const deleteProfile = async (user) => {
             if(user.players.length>0){
                 for (const playerId of user.players) {
                     await Player.findByIdAndUpdate(playerId, { $pull: { coaches: user.id } });
-        }
-    }else if(role=="player"){
+                }
+            }
+        }else if(role=="player"){
             if(user.coaches.length>0){
                 for (const coachId of user.coaches) {
                     await Coach.findByIdAndUpdate(coachId, { $pull: { players: user.id } });
@@ -63,11 +64,13 @@ const deleteProfile = async (user) => {
                     await Parent.findByIdAndUpdate(parentId, { $pull: { children: user.id } });
                 }
             }
+            await UsersCourse.UserCourses.deleteMany({ userId: user._id });
+
         }
         const deletedUser = await User.findByIdAndDelete({ _id: user._id });
 
         return { message: "User deleted successfully" };
-    }
+    
  } catch (err) {
         throw new APIError({
             message: "Error deleting User",
@@ -372,10 +375,92 @@ const addUser = async(query, user)=>{
 }
 }
 
+const viewPlayerCourses= async (id, query)=>{
+    try{
+        
+        const myCourse = await UsersCourse.UserCourses.findOne({userId: id});
+        if(!myCourse){
+            await addCoursesToPlayer(id);
+        }else{
+
+        
+          
+            const updatedCourses = await Course.find({$and:[{isPublished: true, lastUpdated: { $gt: myCourse.lastChecked  },}]} );
+            console.log(updatedCourses.length)
+            if(updatedCourses.length>0){
+                for (const course of updatedCourses) {
+                    const userCourses = await UsersCourse.UserCourses.findOne({userId: id, courses:{$elemMatch: {courseId: course.id}}});
+                    if(!userCourses && course.isPublished==true){
+
+                       await addCourseToPlayer(id, course);
+                       continue;
+                    } ;
+                    const userCourse = userCourses.courses.find((userCourse)=>userCourse.courseId.toString()==course.id);
+                    
+                    if(userCourse){
+                        if(course.isPublished==false){
+                            userCourse.canView = false;
+                        }
+                        for(let i=0; i<course.videos.length; i++){
+                            const video = course.videos[i];
+                            const userVideo = userCourse.videos.find((userVideo)=>userVideo.videoId.toString()==video._id.toString());
+                           
+                            if(!userVideo){
+                                const previousStatus = userCourse.videos.length>0? userCourse.videos[userCourse.videos.length-1].status: -1;
+                                const status = (userCourse.status=="locked" || (previousStatus>-1 && userCourse.videos[previousStatus].status=="locked")) ? "locked": (previousStatus>-1 && userCourse.videos[previousStatus].status=="unfinished"?"locked":"new" );
+    
+                                userCourse.videos.push({videoId: video._id, status: status});
+                            }else{
+                                if(video.deleted){
+                                    userCourse.videos = userCourse.videos.filter((userVideo)=>userVideo.videoId.toString()!=video._id.toString());
+    
+                                }
+                            }
+                            
+                        }
+                        for(let i=0; i<course.assessments.length; i++){
+                            const assessment = course.assessments[i];
+                            const userAssessment = userCourse.assessments.find((userAssessment)=>userAssessment.assessmentId.toString()==assessment._id.toString());
+                            if(!userAssessment){
+                                const previousStatus = userCourse.assessments.length>0? userCourse.assessments[userCourse.assessments.length-1].status: -1;
+                                const status = (userCourse.status=="locked" || (previousStatus>-1 && userCourse.assessments[previousStatus].status=="locked")) ? "locked": (previousStatus>-1 && userCourse.assessments[previousStatus].status=="unfinished"?"locked":"unlocked" );
+                                userCourse.assessments.push({assessmentId: assessment._id, status: status});
+                        }else{
+                            if(assessment.deleted){
+                                userCourse.assessments = userCourse.assessments.filter((userAssessment)=>userAssessment.assessmentId.toString()!=assessment._id.toString());
+                            }
+                        }
+                        
+                        
+                    } 
+                    // console.log('userCourse', userCourse.videos.length);
+                    userCourses.lastChecked = Date.now();
+                    await userCourses.save();
+                    
+                    }
+                   
+            }
+        }
+        console.log('userCourse', myCourse.courses);
+        return {course: myCourse.courses.filter((course)=>course.canView==true)};
+    }
+    }catch(err){
+        console.log(err);
+        throw new APIError({
+            message: "Error viewing User Courses",
+            status: 501,
+            stack: err.stack,
+        });
+    }
+
+}
+
+
 module.exports = {
     updateProfile,
     deleteProfile,
     searchUsers,
     inviteUser,
     addUser,
+    viewPlayerCourses,
 };

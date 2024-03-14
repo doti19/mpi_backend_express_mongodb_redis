@@ -5,7 +5,6 @@ const { APIError } = require("../../errors/apiError");
 // const { friendshipTransformer } = require('../../transformers');
 const { friendshipJoiValidator } = require("../../validators");
 const APIFeatures = require("../../utils/apiFeatures");
-const { isRFC3339 } = require("validator");
 
 const sendFriendRequest = async (body, user) => {
     // try {

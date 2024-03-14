@@ -9,13 +9,13 @@ router
     .get(requireJwtAuth, restrictTo('admin'), courseController.getAllCourses)
     .post(requireJwtAuth, restrictTo('admin'), courseController.createCourse);
 
-// router
-//     .route('/:id')
-//     .get(requireJwtAuth, restrictTo(['admin']), courseController.getCourse)
-//     .patch(requireJwtAuth, restrictTo(['admin']), courseController.updateCourse)
-//     .delete(requireJwtAuth, restrictTo(['admin']), courseController.deleteCourse);
+router
+    .route('/:id')
+    .get(requireJwtAuth, restrictTo('admin'), courseController.getCourse)
+    .patch(requireJwtAuth, restrictTo('admin'), courseController.updateCourse)
+    .delete(requireJwtAuth, restrictTo('admin'), courseController.deleteCourse);
+router.patch('/:id/publish', requireJwtAuth, restrictTo('admin'), courseController.publishCourse);
 
-// router.patch('/:id/publish', requireJwtAuth, restrictTo(['admin']), courseController.publishCourse);
 
 // router
 //     .route('/:id/curriculums')

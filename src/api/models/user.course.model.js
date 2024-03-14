@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const userAssessmentSchema = new Schema({
     assessmentId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Assessment",
+        // ref: "Assessment",
         required: true,
     },
     status: {
@@ -17,14 +17,26 @@ const userAssessmentSchema = new Schema({
 const userVideoSchema = new Schema({
     videoId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Video",
+        // ref: "Video",
         required: true,
     },
     status: {
         type: String,
-        enum: ["new", "finished", "unfinished"],
-        default: "new",
+        enum: ["new", "finished", "unfinished", "locked"],
+        default: "locked",
     },
+});
+const userCurriculumSchema = new Schema({
+    curiculum: {
+        type: mongoose.Schema.Types.ObjectId,
+        // ref: "Module",
+        required: true,
+    },
+    // status: {
+    //     type: String,
+    //     enum: ["unlocked", "locked"],
+    //     default: "locked",
+    // },
 });
 
 const userCourseSchema = new Schema({
@@ -36,6 +48,10 @@ const userCourseSchema = new Schema({
     startingDate: Date,
     assessments: [userAssessmentSchema],
     videos: [userVideoSchema],
+    canView:{
+        type: Boolean,
+        default: true,
+    },
     status: {
         type: String,
         enum: ["started", "not started", "finished", "locked", "unlocked"],
@@ -48,10 +64,24 @@ const userCoursesSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User",
         required: true,
+        unique: true,
     },
     courses: [userCourseSchema],
+    
+    lastChecked: {
+        type: Date,
+        default: Date.now,
+    },
 });
 
-const Token = mongoose.model("Token", tokenSchema);
+const UserCourses = mongoose.model("UserCourses", userCoursesSchema);
+const UserCourse = mongoose.model("UserCourse", userCourseSchema);
+const UserVideo = mongoose.model("UserVideo", userVideoSchema);
+const UserAssessment = mongoose.model("UserAssessment", userAssessmentSchema);
 
-module.exports = Token;
+module.exports = {
+    UserCourses,
+    UserCourse,
+    UserVideo,
+    UserAssessment,
+};

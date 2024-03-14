@@ -92,7 +92,37 @@ const addUser = catchAsync(async(req, res, next)=>{
         );
     
     }
-})
+});
+
+const viewProfileCourses = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.viewPlayerCourses(req.user.id, req.query);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
+
+const viewPlayerCourse = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.viewPlayerCourses(req.params.id, req.query);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
 
 module.exports = {
     viewProfile,
@@ -101,4 +131,6 @@ module.exports = {
     searchUsers,
     inviteUser,
     addUser,
+    viewProfileCourses,
+    viewPlayerCourse,
 };

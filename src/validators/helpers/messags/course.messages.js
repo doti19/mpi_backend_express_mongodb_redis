@@ -159,6 +159,27 @@ const questionCorrectAnswerMessages={
     'string.empty': 'Correct answer cannot be an empty field',
     'any.required': 'Correct answer is a required field'
 }
+const prevCourseMessage = {
+    'string.base': 'Previouse Course Id must be a string',
+    'string.length': 'Previouse Course Id must be 24 characters',
+    'string.hex': 'Previouse Course Id must be a hexadecimal',
+    'string.empty': 'Previouse Course Id must not be empty',
+    'any.required': 'Previouse Course Id is required',
+}
+
+const nextCourseMessage = {
+    'string.base': 'Previouse Course Id must be a string',
+    'string.length': 'Previouse Course Id must be 24 characters',
+    'string.hex': 'Previouse Course Id must be a hexadecimal',
+    'string.empty': 'Previouse Course Id must not be empty',
+    'any.required': 'Previouse Course Id is required',
+}
+
+const startingCourseMessages = {
+    'boolean.base': 'Starting Course must be a boolean',
+    'any.required': 'Starting Course is required',
+}
+
 
 
 const moduleLessonsMessages={
@@ -278,6 +299,9 @@ module.exports={
     questionCorrectAnswerMessages,
     questionSchemaMessages,
     assessmentSchemaMessages,
+    prevCourseMessage,
+    nextCourseMessage,
+    startingCourseMessages
 }
 
 

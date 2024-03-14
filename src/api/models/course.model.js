@@ -13,7 +13,7 @@ const lessonSchema = new Schema({
     },
 });
 
-const moduleSchema = new Schema({
+const curriculumSchema = new Schema({
     title: {
         type: String,
         required: true,
@@ -41,6 +41,10 @@ const questionSchema = new Schema({
         //TODO Should i make this an array in case there are multiple choices that are correct?
         required: true,
     },
+    deleted:{
+        type: Boolean,
+        default: false,
+    }
 
     // status: {
     //     type: String,
@@ -71,8 +75,11 @@ const assessmentSchema = new Schema({
         type: Number,
         default: 3,
     },
-
     questions: [questionSchema],
+    deleted:{
+        type: Boolean,
+        default: false,
+    }
 });
 
 const videoSchema = new Schema({
@@ -99,6 +106,11 @@ const videoSchema = new Schema({
     caption: {
         type: String,
     },
+    deleted:{
+        type: Boolean,
+        default: false,
+    }
+    //TODO create lastUpdated fields for videoscheam, and assessment too
 });
 
 const courseSchema = new Schema(
@@ -130,7 +142,7 @@ const courseSchema = new Schema(
             },
         ],
         curriculum: {
-            type: [moduleSchema],
+            type: curriculumSchema,
     },
     videos:{
         type: [videoSchema],
@@ -139,17 +151,53 @@ const courseSchema = new Schema(
     assessments: {
         type: [assessmentSchema],
     },
-
+    startingCourse:{
+        type: Boolean,
+        default: false,
+    },
+    prevCourse:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course",
+    },
+    nextCourse:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course",
+    },
+    lastUpdated: {
+        type: Date,
+        default: Date.now,
+    },
+    deleted:{
+        type: Boolean,
+        default: false,
+    }
 },
     {
         timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
     }
 );
+
+courseSchema.methods.toJSON = function () {
+    
+    const myCourse = this.toObject();
+
+    
+    // myCourse.id = this._id;
+    delete myCourse._id;
+    delete myCourse.__v;
+    return {id: this._id, ...myCourse};
+};
 
 const Course = mongoose.model("Course", courseSchema);
 // const Assessment = mongoose.model("Assessment", assessmentSchema);
 // const Video = mongoose.model("Video", videoSchema);
+// const Curriculum = mongoose.model("Curriculum", curriculumSchema);
 module.exports = Course;
+// {
+    // Course,
     // Assessment,
     // Video,
-
+    // Curriculum
+// };

@@ -4,7 +4,7 @@ const redisClient = require("../../config/redis");
 const { jwt_token, token: tokenConfig } = require("../../config/config");
 const logger = require("../../config/logger");
 
-const {User:UserSchema, Token, UserToken, Invitation } = require("../models");
+const {User:UserSchema, Token, UserToken, Invitation, UsersCourse, Course } = require("../models");
 
 const User = UserSchema.User;
 const Player = UserSchema.Player;
@@ -22,6 +22,12 @@ const { authTransformer, modelTransformer } = require("../../transformers");
 const { verifyRefreshToken } = require("../../helpers/jwt.helper");
 
 const { checkError } = require("../../utils/checkError");
+const UserCourses = require("../models/user.course.model");
+const mongoose = require("mongoose");
+const { addCoursesToPlayer } = require("../../helpers/course.helper");
+
+
+
 const register = async (body, query) => {
     if(body.role && body.role==='admin'){
         const user = await User.findOne({role: 'admin'});
@@ -187,6 +193,47 @@ const register = async (body, query) => {
     }
 };
 
+async function registerUser (transformedBody, Model){
+    try {
+        const existingUser = await User.findOne({
+            "emailAddress.email": transformedBody.emailAddress.email,
+        });
+
+        if (existingUser) {
+            return { message: "Email is in Use", status: 422 };
+        }
+
+        const newUser = Model(transformedBody);
+        // const session = await mongoose.startSession();
+        // session.startTransaction();
+        const res = await newUser.registerUser(newUser);
+        if(transformedBody.role==='player'){
+            try{
+                await addCoursesToPlayer(newUser._id);
+                // await session.commitTransaction();
+            }catch(err){
+                // await session.abortTransaction();
+                if(res){
+                    await User.deleteOne({_id: res.id});
+                }
+                console.log(err);
+                throw new APIError({message: "Error registering User", status: 501});
+            }finally{
+                // session.endSession();
+            
+            }
+        }
+        return { message: "Registered Successfully", status: 201, user: res };
+    } catch (err) {
+        throw new APIError({
+            message: "Error registering User",
+            status: 501,
+            stack: err.stack,
+        });
+    }
+}
+
+
 
 const completeRegistration = async(body, user)=>{
     try {
@@ -225,27 +272,7 @@ const completeRegistration = async(body, user)=>{
     
     
 };
-async function registerUser (transformedBody, Model){
-    try {
-        const existingUser = await User.findOne({
-            "emailAddress.email": transformedBody.emailAddress.email,
-        });
 
-        if (existingUser) {
-            return { message: "Email is in Use", status: 422 };
-        }
-
-        const newUser = Model(transformedBody);
-        const res = await newUser.registerUser(newUser);
-        return { message: "Registered Successfully", status: 201, user: res };
-    } catch (err) {
-        throw new APIError({
-            message: "Error registering User",
-            status: 501,
-            stack: err.stack,
-        });
-    }
-}
 
 const login = async (req) => {
     try {
