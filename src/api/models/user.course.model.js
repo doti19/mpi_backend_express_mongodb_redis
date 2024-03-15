@@ -48,6 +48,10 @@ const userCourseSchema = new Schema({
     startingDate: Date,
     assessments: [userAssessmentSchema],
     videos: [userVideoSchema],
+    videosFinished:{
+        type: Boolean,
+        default: false,
+    },
     canView:{
         type: Boolean,
         default: true,

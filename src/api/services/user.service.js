@@ -5,7 +5,7 @@ const Player = UserSchema.Player;
 const Coach = UserSchema.Coach;
 const { APIError } = require("../../errors/apiError");
 const { userTransformer, modelTransformer } = require("../../transformers");
-const { userJoiValidator } = require("../../validators");
+const { userJoiValidator, courseJoiValidator } = require("../../validators");
 const APIFeatures = require("../../utils/apiFeatures");
 
 const crypto = require("crypto");
@@ -15,7 +15,8 @@ const { bcrypt: bcryptConfig, links, server, token: tokenConfig } = require("../
 const sendEmail = require("../../config/email");
 
 const { checkError } = require("../../utils/checkError");
-const {addCourseToPlayer, addCoursesToPlayer} = require('../../helpers/course.helper')
+const {addCourseToPlayer, addCoursesToPlayer} = require('../../helpers/course.helper');
+const { status } = require("../../validators/helpers/fields/group.fields");
 const updateProfile = async (user, body) => {
     try {
         userJoiValidator.updateProfileValidator(body);
@@ -495,6 +496,70 @@ const viewPlayerCourses= async (id, query)=>{
 
 }
 
+const updateCourseProgress = async(courseId, body, user)=>{
+    if(body.videoId){
+        courseJoiValidator.updateVideoUserCourseValidator(body);
+    }
+
+    const userCourse = await UsersCourse.UserCourses.findOne({userId: user.id, courses:{$elemMatch: {courseId: courseId}}});
+
+    if(!userCourse){
+        throw new Error("Course not found");
+    }
+
+    const course = userCourse.courses.find((course)=>course.courseId.toString()==courseId);
+    if(!course){
+        throw new Error("Course not found");
+    }
+    if(body.videoId){
+        //TODO why am i using video.videoId instead of video._id
+        const video = course.videos.find((video)=>video.videoId.toString()==body.videoId);
+        if(!video){
+            throw new Error("Video not found");
+        }
+        if(video.status == "locked" || body.status =="new" || body.status=="locked"){
+            throw new Error("You cannot unlock this video yet");
+        }
+        if(video.status=="finished"){
+            throw new Error("Video already finished");
+        }
+        const videoIndex = course.videos.indexOf(video);
+        const isLastVideo = videoIndex === course.videos.length - 1;
+        if(videoIndex>0){
+            const previousVideo = course.videos[videoIndex-1];
+            if(previousVideo.status!="finished"){
+                video.status = "locked";
+                await userCourse.save();
+                throw new Error("You cannot unlock this video yet");
+            }
+        }
+        
+        if(body.status=="finished"){
+            
+            if(!isLastVideo){
+                course.videos[videoIndex+1].status = "new";
+            }else{
+                userCourse.videosFinished = true;
+            }
+            video.status = body.status;
+            await userCourse.save();
+        }else{
+            video.status = body.status;
+            await userCourse.save();
+
+        }
+
+        
+        return userCourse;
+       
+    }
+
+    // if(body.assessmentId){
+
+
+
+}
+
 const viewProfileDashboard= async(user)=>{
     try{
         const data = {};
@@ -566,8 +631,163 @@ const viewProfileDashboard= async(user)=>{
     }
 }
 
+const viewChildren = async(user)=>{
+    try{
+        const children = await Player.find({_id: { $in: user.children}});
+        
+        return children;
+    }catch(err){
+        throw new APIError({
+            message: "Error viewing Children",
+            status: 501,
+            stack: err.stack,
+        });
+    }
 
+}
 
+const viewChild = async(id, user)=>{
+    try{
+        const child = await Player.findById(id).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline parents coaches");
+        if(!child){
+            throw new Error("Child not found");
+        }
+        if(!child.parents.includes(user.id)){
+            throw new Error("Unauthorized");
+        }
+        return child;
+    }catch(err){
+        throw new APIError({
+            message: "Error viewing Child",
+            status: 501,
+            stack: err.stack,
+        });
+    }
+}
+
+const viewChildCoaches = async(id, user)=>{
+    try{
+        const child = await Player.findById(id);
+        if(!child){
+            throw new Error("Child not found");
+        }
+        if(!child.parents.includes(user.id)){
+            throw new Error("Unauthorized");
+        }
+        const coaches = await Coach.find({_id: { $in: child.coaches}}).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline ");
+        return coaches;
+    }catch(err){
+        throw new APIError({
+            message: "Error viewing Child Coaches",
+            status: 501,
+            stack: err.stack,
+        });
+    }
+}
+
+const viewChildCoach = async(id, coachId, user)=>{
+    try{
+        const child = await Player.findById(id);
+        if(!child){
+            throw new Error("Child not found");
+        }
+        if(!child.parents.includes(user.id)){
+            throw new Error("Unauthorized");
+        }
+        const coach = await Coach.findById(coachId).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline -__t");
+        if(!coach){
+            throw new Error("Coach not found");
+        }
+        if(!child.coaches.includes(coachId)){
+            throw new Error("Unauthorized");
+        }
+        return coach;
+    }catch(err){
+        throw new APIError({
+            message: "Error viewing Child Coach",
+            status: 501,
+            stack: err.stack,
+        });
+    }
+}
+
+const viewPlayers = async(user)=>{
+    try{
+        const players = await Player.find({_id: { $in: user.players}}).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline parents coaches -__t");
+        return players;
+    }catch(err){
+        throw new APIError({
+            message: "Error viewing Players",
+            status: 501,
+            stack: err.stack,
+        });
+    }
+}
+
+const viewPlayer= async(id, user)=>{
+    try{
+        const player = await Player.findById(id).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline parents coaches -__t");
+        if(!player){
+            throw new Error("Player not found");
+        }
+        if(!user.players.includes(id)){
+            throw new Error("Unauthorized");
+        }
+        return player;
+}catch(err){
+    throw new APIError({
+        message: "Error viewing Player",
+        status: 501,
+        stack: err.stack,
+    });
+}
+}
+
+const viewPlayerParents = async(id, user)=>{
+    try{
+        const player = await Player.findById(id);
+        if(!player){
+            throw new Error("Player not found");
+        }
+        if(!user.players.includes(id)){
+            throw new Error("Unauthorized");
+        }
+        const parents = await Parent.find({_id: { $in: player.parents}}).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline -__t");
+        return parents;
+    }catch(err){
+        throw new APIError({
+            message: "Error viewing Player Parents",
+            status: 501,
+            stack: err.stack,
+        });
+    }
+}
+
+const viewPlayerParent = async(id, parentId, user)=>{
+    try{
+        const player = await Player.findById(id);
+        if(!player){
+            throw new Error("Player not found");
+        }
+        if(!user.players.includes(id)){
+            throw new Error("Unauthorized");
+        }
+        const parent = await Parent.findById(parentId).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline -__t");
+        if(!parent){
+            throw new Error("Parent not found");
+        }
+        if(!player.parents.includes(parentId)){
+            throw new Error("Unauthorized");
+        }
+        return parent;
+    }catch(err){
+        throw new APIError({
+            message: "Error viewing Player Parent",
+            status: 501,
+            stack: err.stack,
+        });
+    }
+}
 
 module.exports = {
     updateProfile,
@@ -576,6 +796,17 @@ module.exports = {
     inviteUser,
     addUser,
     viewPlayerCourses,
+    updateCourseProgress,
     canView,
     viewProfileDashboard,
+
+    viewChildren,
+    viewChild,
+    viewChildCoaches,
+    viewChildCoach,
+
+    viewPlayers,
+    viewPlayer,
+    viewPlayerParents,
+    viewPlayerParent,
 };

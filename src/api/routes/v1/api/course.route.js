@@ -16,6 +16,13 @@ router
     .delete(requireJwtAuth, restrictTo(['admin']), courseController.deleteCourse);
 router.patch('/:id/publish', requireJwtAuth, restrictTo(['admin']), courseController.publishCourse);
 
+// router
+//     .route('/:id/assessments')
+//     .get(requireJwtAuth, restrictTo([['admin']]), courseController.getCourseAssessments)
+//     .post(requireJwtAuth, restrictTo([['admin']]), courseController.createCourseAssessment)
+//     .patch(requireJwtAuth, restrictTo([['admin']]), courseController.updateCourseAssessment)
+//     .delete(requireJwtAuth, restrictTo([['admin']]), courseController.deleteCourseAssessment);
+
 
 // router
 //     .route('/:id/curriculums')
@@ -24,12 +31,7 @@ router.patch('/:id/publish', requireJwtAuth, restrictTo(['admin']), courseContro
 //     .patch(requireJwtAuth, restrictTo([['admin']]), courseController.updateCourseCurriculum)
 //     .delete(requireJwtAuth, restrictTo([['admin']]), courseController.deleteCourseCurriculum);
 
-// router
-//     .route('/:id/assessments')
-//     .get(requireJwtAuth, restrictTo([['admin']]), courseController.getCourseAssessments)
-//     .post(requireJwtAuth, restrictTo([['admin']]), courseController.createCourseAssessment)
-//     .patch(requireJwtAuth, restrictTo([['admin']]), courseController.updateCourseAssessment)
-//     .delete(requireJwtAuth, restrictTo([['admin']]), courseController.deleteCourseAssessment);
+
 
 // router
 //     .route('/:id/assessments/:assessmentId')

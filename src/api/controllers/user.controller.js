@@ -124,6 +124,21 @@ const viewPlayerCourse = catchAsync(async(req, res, next)=>{
     }
 });
 
+const updateCourseProgress = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.updateCourseProgress(req.params.courseId, req.body, req.user);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
+
 const viewProfileDashboard = catchAsync(async(req, res, next)=>{
     try{
         const result = await userService.viewProfileDashboard(req.user);
@@ -139,6 +154,128 @@ const viewProfileDashboard = catchAsync(async(req, res, next)=>{
     }
 })
 
+const viewChildren = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.viewChildren(req.user);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
+
+const viewChild = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.viewChild(req.params.id, req.user);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
+
+const viewChildCoaches = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.viewChildCoaches(req.params.id, req.user);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
+
+
+const viewChildCoach = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.viewChildCoach(req.params.id, req.params.coachId, req.user);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
+
+
+const viewPlayers = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.viewPlayers(req.user);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
+
+const viewPlayer = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.viewPlayer(req.params.id, req.user);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
+
+const viewPlayerParents = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.viewPlayerParents(req.params.id, req.user);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
+
+const viewPlayerParent = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.viewPlayerParent(req.params.id, req.params.parentId, req.user);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
+
 module.exports = {
     viewProfile,
     updateProfile,
@@ -148,5 +285,17 @@ module.exports = {
     addUser,
     viewProfileCourses,
     viewPlayerCourse,
-    viewProfileDashboard
+    updateCourseProgress,
+    viewProfileDashboard,
+
+
+    viewChildren,
+    viewChild,
+    viewChildCoaches,
+    viewChildCoach,
+
+    viewPlayers,
+    viewPlayer,
+    viewPlayerParents,
+    viewPlayerParent
 };
