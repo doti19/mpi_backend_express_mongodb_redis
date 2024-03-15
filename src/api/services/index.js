@@ -6,3 +6,4 @@ module.exports.journalService = require('./journal.service');
 module.exports.messageService = require('./message.service');
 module.exports.groupService = require('./group.service');
 module.exports.groupChatService = require('./group.chat.service');
+module.exports.reminderService = require('./reminder.service');

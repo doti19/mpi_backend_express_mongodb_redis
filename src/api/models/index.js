@@ -10,3 +10,4 @@ module.exports.Course = require('./course.model');
 module.exports.Message = require('./message.model');
 module.exports.Group = require('./group.model');
 module.exports.GroupChat = require('./group.chat.model');
+module.exports.Reminder = require('./reminder.model');

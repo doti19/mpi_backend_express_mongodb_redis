@@ -7,3 +7,4 @@ module.exports.journalController = require('./journal.controller');
 module.exports.messageController = require('./message.controller');
 module.exports.groupController = require('./group.controller');
 module.exports.groupChatController = require('./group.chat.controller');
+module.exports.reminderController = require('./reminder.controller');
