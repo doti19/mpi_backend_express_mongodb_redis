@@ -7,3 +7,6 @@ module.exports.UsersCourse = require('./user.course.model');
 module.exports.Friendship = require('./friend.model');
 module.exports.Invitation = require('./invitation.model');
 module.exports.Course = require('./course.model');
+module.exports.Message = require('./message.model');
+module.exports.Group = require('./group.model');
+module.exports.GroupChat = require('./group.chat.model');

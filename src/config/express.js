@@ -8,6 +8,7 @@ const cors = require('cors');
 // const xss = require('xss-clean');
 // const mongoSanitize = require('express-mongo-sanitize');
 // const mongoose = require('mongoose');
+const http = require('http');
 const path = require('path');
 const passport = require('passport');
 const routes = require('../api/routes/v1');
@@ -108,6 +109,35 @@ require('./passport')
 // app.use(bodyParser.urlencoded({ extended: false }));
 //TODO only allow certain ips in here
 app.use(cors());
+
+const socketio = require('socket.io');
+const socketServer = http.createServer(app);
+socketio(socketServer,{
+    cors: {
+        origin: [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        ],
+        methods: ["GET", "POST"],
+        // allowedHeaders: ["my-custom-header"],
+        credentials: true,
+        allowEIO3: true,
+    }
+});
+
+const io = socketio(socketServer);
+
+io.on('connection', (socket)=>{
+    socket.on('message-from-client-to-server', (message)=>{
+        console.log(message);
+        io.emit('message-from-server-to-client', message);
+    });
+    socket.emit('message-from-server-to-client', 'Welcome to the chat');
+    console.log('New websocket connectin')
+})
+
+
+
 
 // Routes
 // Add your routes here
