@@ -111,36 +111,63 @@ require('./passport')
 app.use(cors());
 
 const socketio = require('socket.io');
+const { messageService } = require('../api/services');
+const { verifyToken } = require('../helpers/jwt.helper');
 const socketServer = http.createServer(app);
-socketio(socketServer,{
+const io = socketio(socketServer,{
     cors: {
-        origin: [
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-        ],
+        origin: "*",
         methods: ["GET", "POST"],
         // allowedHeaders: ["my-custom-header"],
-        credentials: true,
-        allowEIO3: true,
-    }
-});
+        // credentials: true,
+        // allowEIO3: true,
+    }}
+);
 
-const io = socketio(socketServer);
 
 io.on('connection', (socket)=>{
-    socket.on('message-from-client-to-server', (message)=>{
+    // socket.on('message-from-client-to-server', (message)=>{
+    //     console.log(message);
+    //     io.emit('message-from-server-to-client', message);
+    // });
+    // socket.emit('message-from-server-to-client', 'Welcome to the chat');
+    // console.log('New websocket connectin')
+    socket.on('login', (token)=>{
+        const user = verifyToken(token);
+        if(user){
+           
+            socket.user = user;
+            socket.join(user.id);
+        }
+
+        console.log(socket.user);
+    })
+    socket.on('newMessage', async (message)=>{
+        
         console.log(message);
-        io.emit('message-from-server-to-client', message);
+        try{
+            // socket.join("65f3b6352ca98606d2033e8e")
+            await messageService.createMessage(message, socket.user);
+        }catch(err){
+            console.log(err);
+        }
+        // socket.emit('newMessage', message);
+        console.log(message.receiver);
+        socket.to(message.receiver).emit('newMessage', message);
     });
-    socket.emit('message-from-server-to-client', 'Welcome to the chat');
+
+
     console.log('New websocket connectin')
 })
 
+
+require('../cron/reminder.cron');
 
 
 
 // Routes
 // Add your routes here
+
 app.use('/', routes);
 // app.all('*', (req, res) => {
 //     nextTick(new Error(`${req.originalUrl} not found`, 404));
@@ -156,4 +183,4 @@ app.use(error.notFound);
 app.use(error.handler);
 
 
-module.exports = app;
+module.exports = socketServer;

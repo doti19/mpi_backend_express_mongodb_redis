@@ -27,6 +27,7 @@ if(server.env !=="test"){
 
 const sendEmail = (options) =>{
     try{
+        // 1. compile the template
         const source = fs.readFileSync(`public/template/${options.template}`, 'utf8');
         const compiledTemplate = handlebars.compile(source);
 
@@ -39,7 +40,6 @@ const sendEmail = (options) =>{
             text: options.message? options.message: "",
             html: compiledTemplate(options.payload),
         };
-
         // 3. actuall send the email
          transporter.sendMail(mailOptions, (err, info)=>{
             if(err){
@@ -49,6 +49,7 @@ const sendEmail = (options) =>{
             }
         });
     }catch(error){
+        console.log(error);
         return new Error(error);
     }
 }

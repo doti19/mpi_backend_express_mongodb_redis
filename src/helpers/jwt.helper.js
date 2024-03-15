@@ -1,7 +1,21 @@
 const jwt = require('jsonwebtoken');
 const {jwt_token: token} = require('../config/config');
-const {UserToken} = require('../api/models');
+const {UserToken, User: UserModel} = require('../api/models');
+const User = UserModel.User;
 
+const verifyToken = accessToken => {
+    try{
+        const verified =  jwt.verify(accessToken.token, token.access.secret);
+        if(!verified) return {error: true, token: null, message: "Invalid access token"};
+        
+        // const user = await User.findById(verified.id);
+        // if(!user) return {error: true, token: null, message: "user not found"};
+        return verified;
+    } catch(error){
+        console.log(error);
+        return {error: true, token: null, message: error};
+    }
+}
 
 const verifyRefreshToken = async refreshToken => {
     try{
@@ -25,4 +39,5 @@ const verifyRefreshToken = async refreshToken => {
 
 module.exports = {
     verifyRefreshToken,
+    verifyToken,
 };

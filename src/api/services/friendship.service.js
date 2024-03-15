@@ -5,13 +5,19 @@ const { APIError } = require("../../errors/apiError");
 // const { friendshipTransformer } = require('../../transformers');
 const { friendshipJoiValidator } = require("../../validators");
 const APIFeatures = require("../../utils/apiFeatures");
-
+const sendEmail = require('../../config/email');
 const sendFriendRequest = async (body, user) => {
     // try {
         friendshipJoiValidator.sendFriendRequestValidator(body);
     // } catch (err) {
     //     throw new Error(err);
     // }
+    if(user.id == body.user2){
+        throw new APIError({
+            message: "You cannot send a friend request to yourself",
+            status: 400,
+        });
+    }
     const data = {
         user1: user.id,
         user2: body.user2,
@@ -31,8 +37,41 @@ const sendFriendRequest = async (body, user) => {
                 status: 400,
             });
         }
+        const user2 = await User.findById(body.user2);
+        if(!user2){
+            throw new APIError({
+                message: "User not found",
+                status: 404,
+            });
+        }console.log(user2.notificationPreference.emailNotification.notificationType.includes("friendActivity"));
+        console.log(user2.notificationPreference.emailNotification.enabled && user2.notificationPreference.emailNotification.notificationType.includes("friendActivity"))
+        
 
         const friendship = await Friendship.create(data);
+        try{
+
+            if(user2.notificationPreference.emailNotification.enabled && user2.notificationPreference.emailNotification.notificationType.includes("friendActivity")){
+                console.log('saminas')
+                sendEmail({
+                    email: user2.emailAddress.email,
+                    subject: "Friend Request",
+                    payload:{
+                        name: user2.firstName,
+                        message: `${user.firstName} sent you a friend request`
+                        
+                    },
+                    template: "notification.handlebars"
+                });
+            }
+        }catch{
+            throw new APIError({
+                message: "Error sending friend request",
+                status: 501,
+                stack: err.stack,
+            });
+            friendship.deleteOne();
+        }
+            // return { message: "Friend request sent" };
         return friendship;
     // } catch (err) {
     //     throw new APIError({
@@ -87,11 +126,41 @@ const acceptFriendRequest = async (friendshipId, user) => {
             status: 401,
         });
     }
+    const user1 = await User.findById(friendship.user1);
+if(!user1){
+    throw new APIError({
+        message: "User not found",
+        status: 404,
+    });
 
+}
     friendship.status = "friends";
-    const updatedFriendship = await friendship.save();
+    // const updatedFriendship = await friendship.save();
+    try{
+
+        if(user1.notificationPreference.emailNotification.enabled && user1.notificationPreference.emailNotification.notificationType.includes("friendActivity")){
+            sendEmail({
+                email: user1.emailAddress.email,
+                subject: "Friend Request",
+                payload:{
+                    name: user1.firstName,
+                    message: `${user.firstName} accepted your friend request`
+                    
+                },
+                template: "notification.handlebars"
+            });
+        }
+    }catch{
+        throw new APIError({
+            message: "Error sending friend request",
+            status: 501,
+            stack: err.stack,
+        });
+        friendship.deleteOne();
+    }
     //TODO try to do a notification thing for the one getting accepted
-    return updatedFriendship;
+   return {message: "accepted successfully"};
+    // return updatedFriendship;
     // }catch(err){
     //     throw new APIError({message: 'Error accepting friend request', status: 501, stack: err.stack});
     // }

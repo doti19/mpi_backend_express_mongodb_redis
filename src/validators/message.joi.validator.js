@@ -10,11 +10,11 @@ const {
 } = require('./helpers/fields/message.fields');
 
 const createMessageSchema = (body)=>{
-    console.log('aytwerazeyley')
+    
     const schema = Joi.object().keys({
        
         receiver: receiverField.required(),
-        // sender: senderField.required(),
+        sender: senderField.required(),
         message: messageField,
         
         // conversationId: conversationIdField,
