@@ -10,7 +10,12 @@ const APIFeatures = require("../../utils/apiFeatures");
 
 const createReminder = async (reminder, user) => {
     reminderJoiValidator.createReminderSchema(reminder);
-   
+    if(Date.parse(reminder.date)<Date.now()){
+        throw new APIError({
+            message: "Date should be in the future",
+            status: 400,
+        });
+    }
     reminder.userId = user._id;
     const newReminder = await new Reminder(reminder).save();
     return newReminder;
@@ -42,6 +47,12 @@ const updateReminder = async (id, reminder, user) => {
     
      delete reminder.userId;
      delete reminder.createdAt;
+     if(Date.parse(reminder.date)<Date.now()){
+        throw new APIError({
+            message: "Date should be in the future",
+            status: 400,
+        });
+    }
     
     const updatedReminder = await Reminder.findOneAndUpdate({ _id: id, userId: user._id.toString() },
         reminder,

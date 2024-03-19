@@ -124,9 +124,25 @@ const viewPlayerCourse = catchAsync(async(req, res, next)=>{
     }
 });
 
-const updateCourseProgress = catchAsync(async(req, res, next)=>{
+
+const updateCourseVideoProgress = catchAsync(async(req, res, next)=>{
     try{
-        const result = await userService.updateCourseProgress(req.params.courseId, req.body, req.user);
+        const result = await userService.updateCourseVideoProgress(req.params.courseId, req.params.videoId, req.body, req.user);
+        res.send(result)
+    }catch(err){
+        return next(
+            new APIError({
+                message: err.message,
+                status: err.status,
+                stack: err.stack,
+            })
+        );
+    }
+});
+
+const updateCourseAssessmentProgress = catchAsync(async(req, res, next)=>{
+    try{
+        const result = await userService.updateCourseAssessmentProgress(req.params.courseId, req.params.assessmentId ,req.body, req.user);
         res.send(result)
     }catch(err){
         return next(
@@ -285,7 +301,8 @@ module.exports = {
     addUser,
     viewProfileCourses,
     viewPlayerCourse,
-    updateCourseProgress,
+    updateCourseVideoProgress,
+    updateCourseAssessmentProgress,
     viewProfileDashboard,
 
 

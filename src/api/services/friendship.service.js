@@ -150,16 +150,18 @@ if(!user1){
                 template: "notification.handlebars"
             });
         }
+        friendship.save();
     }catch{
         throw new APIError({
             message: "Error sending friend request",
             status: 501,
             stack: err.stack,
         });
-        friendship.deleteOne();
+        // friendship.deleteOne();
     }
     //TODO try to do a notification thing for the one getting accepted
-   return {message: "accepted successfully"};
+   
+    return {message: "accepted successfully"};
     // return updatedFriendship;
     // }catch(err){
     //     throw new APIError({message: 'Error accepting friend request', status: 501, stack: err.stack});

@@ -75,6 +75,17 @@ const assessmentSchema = new Schema({
         type: Number,
         default: 3,
     },
+    connectedWithVideo:{
+        type: Boolean,
+        default: false, 
+    },
+    connectedVideoId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Video",
+        required: function(){
+            return this.connectedWithVideo;
+        }
+    },
     questions: [questionSchema],
     deleted:{
         type: Boolean,
@@ -109,7 +120,18 @@ const videoSchema = new Schema({
     deleted:{
         type: Boolean,
         default: false,
-    }
+    },
+    hasAssessmentNext:{
+        type: Boolean,
+        default: false,
+    },
+    assessmentId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Assessment",
+        required: function(){
+            return this.hasNextAssessment;
+        }
+    },
     //TODO create lastUpdated fields for videoscheam, and assessment too
 });
 

@@ -1,11 +1,37 @@
 const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
+
+const userQuestionSchema = new Schema({
+    questionId: {
+        type: mongoose.Schema.Types.ObjectId,
+        // ref: "Question",
+        required: true,
+    },
+    // status: {
+    //     type: String,
+    //     enum: ["answered", "locked", "started", "not started"],
+    //     default: "locked",
+    // },
+    userAnswer:{
+        type: String,
+    },
+    answerStatus:{
+        type: String,
+        enum: ["correct", "incorrect", "unanswered"],
+        default: "unanswered",
+    }
+})
+
+
 const userAssessmentSchema = new Schema({
     assessmentId: {
         type: mongoose.Schema.Types.ObjectId,
         // ref: "Assessment",
         required: true,
+    },
+    questions:{
+        type: [userQuestionSchema],
     },
     status: {
         type: String,
@@ -49,6 +75,10 @@ const userCourseSchema = new Schema({
     assessments: [userAssessmentSchema],
     videos: [userVideoSchema],
     videosFinished:{
+        type: Boolean,
+        default: false,
+    },
+    assessmentsFinished:{
         type: Boolean,
         default: false,
     },

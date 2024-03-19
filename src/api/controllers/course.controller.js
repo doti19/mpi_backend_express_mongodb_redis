@@ -50,6 +50,22 @@ const publishCourse = catchAsync(async(req, res, next) =>{
     }
 });
 
+const updateCoursePlan = catchAsync(async(req, res, next) =>{
+    try{
+        const result = await courseService.updateCoursePlan(req.params.id, req.body);
+        res.send(result);
+    }
+    catch(error){
+        return next(
+            new APIError({
+                message: error.message,
+                status: error.status,
+                stack: error.stack,
+            })
+        );
+    }
+});
+
 const updateCourse = catchAsync(async(req, res, next)=>{
     try{
         if(req.user.role !== 'admin'){throw new APIError({message: 'You are not authorized to perform this action', status: 401})}
@@ -107,4 +123,5 @@ module.exports = {
     updateCourse,
     deleteCourse,
     getCourse,
+    updateCoursePlan,
 };

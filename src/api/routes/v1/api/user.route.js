@@ -13,7 +13,8 @@ router
     .route('/profile/courses')
     .get(requireJwtAuth, restrictTo(['player']), userController.viewProfileCourses);
 
-router.patch('/profile/courses/:courseId', requireJwtAuth, restrictTo(['player']), userController.updateCourseProgress);
+router.patch('/profile/courses/:courseId/videos/:videoId', requireJwtAuth, restrictTo(['player']), userController.updateCourseVideoProgress);
+router.patch('/profile/courses/:courseId/assessments/:assessmentId', requireJwtAuth, restrictTo(['player']), userController.updateCourseAssessmentProgress);
 
 router.route('/profile/dashboard')
     .get(requireJwtAuth, restrictTo(['player']), userController.viewProfileDashboard);

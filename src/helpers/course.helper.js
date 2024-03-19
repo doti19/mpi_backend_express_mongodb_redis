@@ -25,14 +25,19 @@ async function addCoursesToPlayer(id){
                         const video = course.videos[j];
                         const userVideo = new UsersCourse.UserVideo({
                             videoId: video._id, 
-                            status: j===0?'new': 'locked'});
+                            status: j===0 && i==0?'new': 'locked'});
                             userCourse.videos.push(userVideo);
                     }
                     for(let j=0; j<course.assessments.length;j++){
                         const assessment = course.assessments[j];
+                        const questions = assessment.questions.map(question=>{
+                            return {questionId: question._id, 
+                            userAnswer: null, answerStatus: 'unanswered'};
+                        });
                         const userAssessment = new UsersCourse.UserAssessment({
                             assessmentId: assessment._id, 
-                            status: j===0?'unlocked': 'locked'});
+                            questions: questions,
+                            status: 'locked'});
                             userCourse.assessments.push(userAssessment);
                         }
                         
@@ -86,7 +91,7 @@ async function addCourseToPlayer(id, course){
     userCourses.courses.push(userCourse);
     
    const courses = await userCourses.save();
-
+        return userCourse._id;
     // newUser.courses = courses.map(course=>course.id);
     // newUser.save();
 

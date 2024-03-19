@@ -17,6 +17,7 @@ const sendEmail = require("../../config/email");
 const { checkError } = require("../../utils/checkError");
 const {addCourseToPlayer, addCoursesToPlayer} = require('../../helpers/course.helper');
 const { status } = require("../../validators/helpers/fields/group.fields");
+const { lastName } = require("../../validators/helpers/fields/user.fields");
 const updateProfile = async (user, body) => {
     try {
         userJoiValidator.updateProfileValidator(body);
@@ -90,7 +91,7 @@ const searchUsers = async (query) => {
     // const transformedQuery = userTransformer.searchUserQueryTransformer(query);
     try {
         // const users = await User.find(transformedQuery);
-        const apiFeatures = new APIFeatures(User.find(), query).search();
+        const apiFeatures = new APIFeatures(Player.find(), query).search();
         const users = await apiFeatures.query;
         return { result: users.length, users };
     } catch (err) {
@@ -482,7 +483,7 @@ const viewPlayerCourses= async (id, query)=>{
                    
             }
         }
-        console.log('userCourse', myCourse.courses);
+        // console.log('userCourse', myCourse.courses);
         return {course: myCourse.courses.filter((course)=>course.canView==true)};
     }
     }catch(err){
@@ -496,13 +497,15 @@ const viewPlayerCourses= async (id, query)=>{
 
 }
 
-const updateCourseProgress = async(courseId, body, user)=>{
-    if(body.videoId){
+const updateCourseVideoProgress = async(courseId, videoId, body, user)=>{
+   
         courseJoiValidator.updateVideoUserCourseValidator(body);
-    }
+   
+
+
+    //TODO user should update based on user course id, not course id
 
     const userCourse = await UsersCourse.UserCourses.findOne({userId: user.id, courses:{$elemMatch: {courseId: courseId}}});
-
     if(!userCourse){
         throw new Error("Course not found");
     }
@@ -511,9 +514,9 @@ const updateCourseProgress = async(courseId, body, user)=>{
     if(!course){
         throw new Error("Course not found");
     }
-    if(body.videoId){
+   
         //TODO why am i using video.videoId instead of video._id
-        const video = course.videos.find((video)=>video.videoId.toString()==body.videoId);
+        const video = course.videos.find((video)=>video.videoId.toString()==videoId);
         if(!video){
             throw new Error("Video not found");
         }
@@ -521,7 +524,7 @@ const updateCourseProgress = async(courseId, body, user)=>{
             throw new Error("You cannot unlock this video yet");
         }
         if(video.status=="finished"){
-            throw new Error("Video already finished");
+            // throw new Error("Video already finished");
         }
         const videoIndex = course.videos.indexOf(video);
         const isLastVideo = videoIndex === course.videos.length - 1;
@@ -535,22 +538,98 @@ const updateCourseProgress = async(courseId, body, user)=>{
         }
         
         if(body.status=="finished"){
-            
-            if(!isLastVideo){
-                course.videos[videoIndex+1].status = "new";
+
+            const courseModel = await Course.findById(courseId).select('videos assessments nextCourse');
+            const courseVideo = await courseModel.videos.find(video => video._id.toString() === videoId);
+            if(courseVideo.hasAssessmentNext){
+                const nextAssessment = await courseModel.assessments.find(assessment => assessment._id.toString()===courseVideo.assessmentId.toString());
+                if(nextAssessment){
+                    const userAssessment = course.assessments.find((assessment)=>assessment.assessmentId.toString()==nextAssessment._id.toString());
+                    if(userAssessment){
+                        userAssessment.status = "unlocked";
+                    }else{
+                        throw new Error("Assessment not found");
+                    }
+                }
             }else{
-                userCourse.videosFinished = true;
+                if(!isLastVideo && (videoIndex+1<=course.videos.length-1))
+                    course.videos[videoIndex+1].status = "new";
             }
-            video.status = body.status;
-            await userCourse.save();
+            if(isLastVideo){
+                    course.videosFinished = true;
+                if(course.videosFinished && (course.assessmentsFinished|| !courseVideo.hasAssessmentNext) ){
+                    if(courseModel.nextCourse){
+
+                    
+                    const nextCourse = await Course.findById(courseModel.nextCourse);
+                    if(!nextCourse || !nextCourse.isPublished){
+                        throw new Error("Next Course not found");
+                    }
+
+                    const nextUserCourse = userCourse.courses.find((course)=>course.courseId.toString()==nextCourse._id.toString());
+                    if(!nextUserCourse){
+                       const courseId =  await addCourseToPlayer(user.id, nextCourse);
+                        const nextUserCourse = await UsersCourse.UserCourses.findOne({userId: user.id, courses:{$elemMatch: {courseId: courseId}}});
+                        if(!nextUserCourse){
+                            throw new Error("Next Course not found");
+                        }
+                        nextUserCourse.startingDate= Date.now();
+                        nextUserCourse.status = "unlocked";
+                        nextCourse.videos[0].status = "new";
+                        await nextUserCourse.save();
+                    }else{
+                        nextUserCourse.startingDate= Date.now();
+                        nextUserCourse.status = "unlocked";
+                        nextCourse.videos[0].status = "new";
+                        await nextUserCourse.save();
+                    }
+                }
+
+                course.status = "finished";
+                }else{
+                    course.status = "started";
+                }
+            }else{
+                course.status = "started";
+            }
+        
+            video.status = "finished";
         }else{
             video.status = body.status;
-            await userCourse.save();
-
+            course.status = "started"
         }
+        await userCourse.save();
 
-        
-        return userCourse;
+        // return {
+        //     videoId: userCourse.courses[0].videos[0].videoId,
+        //     status: userCourse.courses[0].videos[0].status,
+        //     '==========': '------------------------',
+        //     video1Id: userCourse.courses[0].videos[1].videoId,
+        //     video1Status: userCourse.courses[0].videos[1].status,
+        //     '========': '------------------------',
+        //     userAssessment: userCourse.courses[0].assessments[0].assessmentId,
+        //     userAssessmentStatus: userCourse.courses[0].assessments[0].status,
+        //     '============': '------------------------',
+        //     userAssessment1Id: userCourse.courses[0].assessments[1].assessmentId,
+        //     userAssessment1Status: userCourse.courses[0].assessments[1].status,
+
+        // };
+
+        return {
+            videoId: userCourse.courses[1].videos[0].videoId,
+            status: userCourse.courses[1].videos[0].status,
+            '==========': '------------------------',
+            video1Id: userCourse.courses[1].videos[1].videoId,
+            video1Status: userCourse.courses[1].videos[1].status,
+            '========': '------------------------',
+            userAssessment: userCourse.courses[1].assessments[0].assessmentId,
+            userAssessmentStatus: userCourse.courses[1].assessments[0].status,
+            '============': '------------------------',
+            userAssessment1Id: userCourse.courses[1].assessments[1].assessmentId,
+            userAssessment1Status: userCourse.courses[1].assessments[1].status,
+
+        };
+        // return userCourse;
        
     }
 
@@ -558,6 +637,141 @@ const updateCourseProgress = async(courseId, body, user)=>{
 
 
 
+
+
+const updateCourseAssessmentProgress = async(courseId, assessmentId, body, user)=>{
+   
+    courseJoiValidator.updateAssessmentUserCourseValidator(body);
+    const userCourse = await UsersCourse.UserCourses.findOne({userId: user.id, courses:{$elemMatch: {courseId: courseId}}});
+
+    if(!userCourse){
+        throw new Error("Course not found");
+    }
+    const course = userCourse.courses.find((course)=>course.courseId.toString()==courseId);
+    if(!course){
+        throw new Error("Course not found");
+    }
+//TODO here also am using assessment.assessmentId, but for the future change it to assessment._id
+
+    const assessment = course.assessments.find((assessment)=>assessment.assessmentId.toString()==assessmentId.toString());
+    
+    if(!assessment){
+        throw new Error("Assessment not found");
+    }
+    if(assessment.status == "locked"){
+        throw new Error("You cannot unlock this assessment yet");
+    }
+    if(assessment.status=="passed"){
+        // throw new Error("Assessment already passed");
+    }
+    const assessmentIndex = course.assessments.indexOf(assessment);
+    const isLastAssessment = assessmentIndex === course.assessments.length - 1;
+    const courseModel = await Course.findById(courseId).select('videos assessments nextCourse');
+    const courseAssessment = await courseModel.assessments.find(assessment => assessment._id.toString() === assessmentId);
+    const courseQuestions = courseAssessment.questions;
+    let undefinedCount = 0;
+    let failureCount = 0;
+    const updatedQuestions = assessment.questions.map(question => {
+        const updatedQuestion = body.questions.find(q => q.questionId.toString() === question.questionId.toString());
+       
+        if (updatedQuestion) {
+          // Update the fields of the question
+        if(updatedQuestion.userAnswer){
+            
+            const courseQuestion = courseQuestions.find(q => q._id.toString() === question.questionId.toString());
+            question.userAnswer = updatedQuestion.userAnswer;
+            if(question.userAnswer == courseQuestion.correctAnswer){
+
+            question.answerStatus = "correct";
+        }else{
+            question.answerStatus = "incorrect";
+            failureCount++;
+        }
+    }
+        }else{
+            undefinedCount++;
+        }
+        return question;
+      });
+      if(undefinedCount==assessment.questions.length){
+            throw new Error("No question was answered");
+      }
+      
+      assessment.questions = updatedQuestions;
+      const allQuestionsPassed = assessment.questions.every(question=>question.answerStatus=="correct");
+console.log(allQuestionsPassed)
+console.log(allQuestionsPassed && (failureCount==0) && assessment.status!=="locked" )
+      if(allQuestionsPassed &&failureCount==0 && assessment.status!=="locked" ){
+        assessment.status = "passed";
+        if(courseAssessment.connectedWithVideo){
+            const prevVideo = course.videos.find(video=> video.videoId.toString()==courseAssessment.connectedVideoId.toString());
+            if(prevVideo){
+                const videoIndex = course.videos.indexOf(prevVideo);
+                const isLastVideo = videoIndex === course.videos.length-1;
+                
+                if(!isLastVideo && (videoIndex+1<=course.videos.length-1)){
+                    course.videos[videoIndex+1].status = "new";
+                }
+                course.status == "started";
+            }
+        }
+        if(isLastAssessment){
+            course.assessmentsFinished = true;
+            if(course.videosFinished && course.assessmentsFinished ){
+               
+                if(courseModel.nextCourse){
+                const nextCourse = await Course.findById(courseModel.nextCourse);
+                if(!nextCourse || !nextCourse.isPublished){
+                    throw new Error("Next Course not found");
+                }
+
+                //TODO this one returned an array, now it is fixed but fix it on the videos part, it is the same code
+                const course = userCourse.courses.find((course)=>course.courseId.toString()==courseId);
+
+                const nextUserCourse = userCourse.courses.find((course)=>course.courseId.toString()==nextCourse._id.toString());
+                console.log('my next course',nextUserCourse);
+                if(!nextUserCourse){
+                   const courseId =  await addCourseToPlayer(user.id, nextCourse);
+                    const nextUserCourse = await UsersCourse.UserCourses.findOne({userId: user.id, courses:{$elemMatch: {courseId: courseId}}});
+                    if(!nextUserCourse){
+                        throw new Error("Next Course not found");
+                    }
+                    nextUserCourse.startingDate= Date.now();
+                    nextUserCourse.status = "unlocked";
+                    nextCourse.videos[0].status = "new";
+                    // await nextUserCourse.save();
+                }else{
+                    console.log('bumbaye')
+                    console.log(nextUserCourse);
+                    nextUserCourse.startingDate= Date.now();
+                    nextUserCourse.status = "unlocked";
+                    nextUserCourse.videos[0].status = "new";
+                    // console.log(nextCourse)
+                    // await nextUserCourse.save();
+                }
+            course.status = "finished";
+            }else{
+                //congratulation u have finished the course
+                //TODO do this for the video too
+                throw new Error("Next Course not found");
+            
+            }
+            }
+        }
+      }
+      if(course.status=="not started") course.status="started";
+        await userCourse.save();
+       
+     
+
+    //Assessments state 'passed', 'failed', 'unlocked', 'locked'
+    //Questions state 'answered', 'started', 'locked', 'not started
+    // answer state 'correct', 'incorrect', 'unanswered'
+    return {
+        status: assessment.status,
+        assessment: assessment.questions,
+    }
+   
 }
 
 const viewProfileDashboard= async(user)=>{
@@ -633,7 +847,7 @@ const viewProfileDashboard= async(user)=>{
 
 const viewChildren = async(user)=>{
     try{
-        const children = await Player.find({_id: { $in: user.children}});
+        const children = await Player.find({_id: { $in: user.children}}).select("firstName lastName phoneNumber avatar -__t");
         
         return children;
     }catch(err){
@@ -648,7 +862,7 @@ const viewChildren = async(user)=>{
 
 const viewChild = async(id, user)=>{
     try{
-        const child = await Player.findById(id).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline parents coaches");
+        const child = await Player.findById(id).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline parents coaches -__t");
         if(!child){
             throw new Error("Child not found");
         }
@@ -674,7 +888,7 @@ const viewChildCoaches = async(id, user)=>{
         if(!child.parents.includes(user.id)){
             throw new Error("Unauthorized");
         }
-        const coaches = await Coach.find({_id: { $in: child.coaches}}).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline ");
+        const coaches = await Coach.find({_id: { $in: child.coaches}}).select("firstName lastName avatar lastOnline ");
         return coaches;
     }catch(err){
         throw new APIError({
@@ -713,7 +927,7 @@ const viewChildCoach = async(id, coachId, user)=>{
 
 const viewPlayers = async(user)=>{
     try{
-        const players = await Player.find({_id: { $in: user.players}}).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline parents coaches -__t");
+        const players = await Player.find({_id: { $in: user.players}}).select("firstName lastName lastOnline parents coaches -__t");
         return players;
     }catch(err){
         throw new APIError({
@@ -752,7 +966,7 @@ const viewPlayerParents = async(id, user)=>{
         if(!user.players.includes(id)){
             throw new Error("Unauthorized");
         }
-        const parents = await Parent.find({_id: { $in: player.parents}}).select("firstName lastName emailAddress.email phoneNumber avatar lastOnline -__t");
+        const parents = await Parent.find({_id: { $in: player.parents}}).select("firstName lastName avatar lastOnline -__t");
         return parents;
     }catch(err){
         throw new APIError({
@@ -796,7 +1010,8 @@ module.exports = {
     inviteUser,
     addUser,
     viewPlayerCourses,
-    updateCourseProgress,
+    updateCourseVideoProgress,
+    updateCourseAssessmentProgress,
     canView,
     viewProfileDashboard,
 

@@ -123,10 +123,81 @@ const publishCourse = async(courseId)=>{
             course.nextCourse = null;
         }
     }
+
+
     course.isPublished = true;
     course.lastUpdated = Date.now();
     await course.save();
     return course;
+}
+
+const updateCoursePlan = async(courseId, courseData)=>{
+    // basically what i am going to do here is that:
+        // check if it is published=> throw an error
+        // if the video has an assessment:
+            //check if the assessment and video is valid
+            // check if the video is not connected with assessment
+            // check if the assessment is not connected with video:
+                // if the video is not connected with assessment:
+                    // connect the video with the assessment
+                    // connect the assessment with the video
+courseJoiValidator.updateCoursePlan(courseData);
+
+    const course = await Course.findById(courseId.toString());
+    if(!course){
+        throw new APIError({message: 'Course not found', status: 404});
+    }
+    if(course.isPublished){
+        throw new APIError({message: 'Course already published', status: 400});
+    }
+    
+    const courseVideo = await course.videos.find(video=>video._id.toString()===courseData.videoId);
+    if(!courseVideo){
+        throw new APIError({message: 'Video not found', status: 404});
+    }
+    const courseAssessment = await course.assessments.find(assessment=>assessment._id.toString()===courseData.assessmentId);
+    if(!courseAssessment){
+        throw new APIError({message: 'Assessment not found', status: 404});
+    }
+    // check if it is connected with another courseAssessment, and update that one to null (connectedwith video => false and connected video id=> null)
+    if(courseVideo.hasAssessmentNext){
+        console.log('it has assessment next')
+            const nextAssessment = await course.assessments.find(assessment=>assessment._id.toString()===courseVideo.assessmentId.toString());
+           
+            if(nextAssessment){
+                console.log('it has next assessment', nextAssessment._id);
+                nextAssessment.connectedWithVideo = false;
+                nextAssessment.connectedVideoId = null;
+                
+                
+            }
+        
+    }
+
+    if(courseAssessment.connectedWithVideo){
+        console.log('it has connected with video')
+        const nextVideo = await course.videos.find(video=>video._id.toString()===courseAssessment.connectedVideoId.toString());
+        
+        if(nextVideo){
+            console.log('it has next video', nextVideo._id);
+            nextVideo.hasAssessmentNext = false;
+            nextVideo.assessmentId = null;
+            
+           
+            
+        }
+    }
+
+    //now both video and assessment are not connected with any other video or assessment
+    courseVideo.hasAssessmentNext = true;
+    courseVideo.assessmentId = courseAssessment._id;
+    courseAssessment.connectedWithVideo = true;
+    courseAssessment.connectedVideoId = courseVideo._id;
+    course.lastUpdated = Date.now();
+    await course.save();
+   return course;
+
+    // TODO, update the course update on user course to first navigate to assessment and unlock it, then after finish assessment it unlocks the next video on the array
 }
 
 const updateCourse = async(courseId, courseData)=>{
@@ -352,5 +423,6 @@ module.exports = {
     publishCourse,
     updateCourse,
     deleteCourse,
-    getCourse
+    getCourse,
+    updateCoursePlan,
 };

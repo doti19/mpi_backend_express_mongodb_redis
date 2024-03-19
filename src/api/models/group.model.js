@@ -9,7 +9,8 @@ const groupSchema = new mongoose.Schema({
     members:[{
         user: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
+            ref: 'User',
+            required: true
         },
         status:{
             type: String,
@@ -53,11 +54,11 @@ const groupSchema = new mongoose.Schema({
 groupSchema.pre(/^find/, function(next){
     this.populate({
         path: 'members.user',
-        select: 'firstName lastName avatar'
+        select: 'firstName lastName avatar -__t'
     })
     .populate({
         path: 'createdBy',
-        select: 'firstName lastName avatar'
+        select: 'firstName lastName avatar -__t'
     });
     next();
 });

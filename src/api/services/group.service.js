@@ -7,7 +7,23 @@ const APIFeatures = require("../../utils/apiFeatures");
 
 const createGroup = async(body, user)=>{
     groupJoiValidator.createGroupSchema(body);
-    body.members.push({user: user.id, status: 'approved'});
+    
+   
+    const members = [{
+        user: user.id,
+        status: 'approved'
+    }];
+    for(const member of body.members){
+        if(members.length>0){
+        if(members.some(mem=>mem.user.toString()===member.user.toString())){
+            continue;
+        }
+    }
+        members.push({user: member.user, status: 'approved'});
+    }
+    // console.log(members);
+    body.members = members;
+    // console.log(membersSet);
     const group = new Group({
         ...body,
         createdBy: user.id,
@@ -23,6 +39,7 @@ const getAllGroups = async(query, user)=>{
         .limitFields()
         .paginate();
     const groups = await features.query;
+
     return groups;
 }
 

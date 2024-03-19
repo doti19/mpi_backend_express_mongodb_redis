@@ -107,7 +107,7 @@ validate(schema, body);
 const requestPasswordResetValidator =(body)=>{
     
     const schema = Joi.object().keys({
-    email: email.requied(),
+    email: email.required(),
 });
 
 validate(schema, body);

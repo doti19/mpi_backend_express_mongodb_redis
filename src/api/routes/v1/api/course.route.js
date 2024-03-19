@@ -16,6 +16,7 @@ router
     .delete(requireJwtAuth, restrictTo(['admin']), courseController.deleteCourse);
 router.patch('/:id/publish', requireJwtAuth, restrictTo(['admin']), courseController.publishCourse);
 
+router.patch('/:id/coursePlan', requireJwtAuth, restrictTo(['admin']), courseController.updateCoursePlan);
 // router
 //     .route('/:id/assessments')
 //     .get(requireJwtAuth, restrictTo([['admin']]), courseController.getCourseAssessments)
